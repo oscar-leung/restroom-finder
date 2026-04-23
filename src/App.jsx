@@ -188,6 +188,15 @@ function App() {
           🗺️  View all {sorted.length} on map
         </button>
 
+        <a
+          className="tip-jar"
+          href="https://buymeacoffee.com/oscarleung"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          ☕ Tip the dev
+        </a>
+
         <p className="footer-note">
           Data from{" "}
           <a
