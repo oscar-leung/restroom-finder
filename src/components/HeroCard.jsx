@@ -1,4 +1,5 @@
 import { formatDistance } from "../utils/distance";
+import { trackEvent } from "../utils/analytics";
 
 /**
  * HeroCard — the big "here's the closest restroom" card shown front-and-center.
@@ -59,6 +60,13 @@ export default function HeroCard({ restroom, onDetails }) {
         href={directionsUrl}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() =>
+          trackEvent("go_clicked", {
+            distance_m: Math.round(restroom.distance),
+            accessible: !!restroom.accessible,
+            unisex: !!restroom.unisex,
+          })
+        }
       >
         <span className="hero-go-arrow">→</span>
         GO

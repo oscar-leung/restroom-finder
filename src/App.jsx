@@ -6,6 +6,7 @@ import HeroCard from "./components/HeroCard";
 import AlternativesRow from "./components/AlternativesRow";
 import MapView from "./components/MapView";
 import RestroomPanel from "./components/RestroomPanel";
+import { trackEvent } from "./utils/analytics";
 import "./index.css";
 
 // Fallback if geolocation denied (San Francisco)
@@ -83,6 +84,9 @@ function App() {
 
   const handlePromote = (r) => {
     setManualChoice(r);
+    trackEvent("alternative_promoted", {
+      distance_m: Math.round(r.distance || 0),
+    });
     // Auto-scroll back to top so user sees the new hero
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -183,7 +187,10 @@ function App() {
 
         <button
           className="map-toggle"
-          onClick={() => setMapOpen(true)}
+          onClick={() => {
+            setMapOpen(true);
+            trackEvent("map_opened", { restroom_count: sorted.length });
+          }}
         >
           🗺️  View all {sorted.length} on map
         </button>
@@ -193,6 +200,7 @@ function App() {
           href="https://buymeacoffee.com/oscarleung"
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => trackEvent("tip_clicked")}
         >
           ☕ Tip the dev
         </a>
