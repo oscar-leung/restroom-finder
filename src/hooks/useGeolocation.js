@@ -25,8 +25,22 @@ export default function useGeolocation() {
     setLoading(true);
     setError(null);
 
+    // Soft timeout: some browsers (and headless previews) never fire either
+    // callback if the user doesn't interact with the permission prompt.
+    // Fall back after 5s so the app doesn't hang on a blank screen.
+    let settled = false;
+    const softTimeout = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      setError("Location request timed out — using a default city.");
+      setLoading(false);
+    }, 5000);
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(softTimeout);
         setPosition({
           latitude: pos.coords.latitude,
           longitude: pos.coords.longitude,
@@ -34,10 +48,13 @@ export default function useGeolocation() {
         setLoading(false);
       },
       (err) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(softTimeout);
         setError(err.message);
         setLoading(false);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      { enableHighAccuracy: true, timeout: 4000, maximumAge: 60000 }
     );
   }, []);
 

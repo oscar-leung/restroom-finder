@@ -2,17 +2,17 @@ import { useState, useEffect, useMemo } from "react";
 import useGeolocation from "./hooks/useGeolocation";
 import { fetchNearbyRestrooms } from "./services/restroomApi";
 import { distanceMeters } from "./utils/distance";
+import HeroCard from "./components/HeroCard";
+import AlternativesRow from "./components/AlternativesRow";
 import MapView from "./components/MapView";
 import RestroomPanel from "./components/RestroomPanel";
-import RestroomList from "./components/RestroomList";
-import FilterBar from "./components/FilterBar";
 import "./index.css";
 
-// Fallback location (San Francisco) if geolocation is denied
+// Fallback if geolocation denied (San Francisco)
 const DEFAULT_POSITION = { latitude: 37.7749, longitude: -122.4194 };
 
 function App() {
-  // 1. Geolocation
+  // --- Location ---
   const {
     position: geoPosition,
     error: geoError,
@@ -20,24 +20,22 @@ function App() {
     refresh: refreshLocation,
   } = useGeolocation();
 
-  // 2. Final position: real GPS or fallback
   const position = geoPosition || (geoError ? DEFAULT_POSITION : null);
   const usingFallback = !geoPosition && !!geoError;
 
-  // 3. Restrooms state
+  // --- Restrooms ---
   const [restrooms, setRestrooms] = useState([]);
   const [apiError, setApiError] = useState(null);
   const [apiLoading, setApiLoading] = useState(false);
 
-  // 4. UI state
-  const [selected, setSelected] = useState(null);
-  const [filters, setFilters] = useState({ accessible: false, unisex: false });
-  const [recenterKey, setRecenterKey] = useState(0);
+  // --- UI state ---
+  const [manualChoice, setManualChoice] = useState(null); // user-promoted alternative
+  const [detailsOpen, setDetailsOpen] = useState(null);
+  const [mapOpen, setMapOpen] = useState(false);
 
-  // 5. Fetch restrooms when position changes
+  // Fetch when position resolves
   useEffect(() => {
     if (!position) return;
-
     setApiLoading(true);
     setApiError(null);
     fetchNearbyRestrooms(position.latitude, position.longitude)
@@ -51,10 +49,9 @@ function App() {
       });
   }, [position?.latitude, position?.longitude]);
 
-  // 6. Add .distance to each restroom, filter, sort
-  const processedRestrooms = useMemo(() => {
+  // Add .distance + sort by closest
+  const sorted = useMemo(() => {
     if (!position) return [];
-
     return restrooms
       .map((r) => ({
         ...r,
@@ -65,25 +62,39 @@ function App() {
           r.longitude
         ),
       }))
-      .filter((r) => (filters.accessible ? r.accessible : true))
-      .filter((r) => (filters.unisex ? r.unisex : true))
       .sort((a, b) => a.distance - b.distance);
-  }, [restrooms, position, filters]);
+  }, [restrooms, position]);
 
-  // 7. When a restroom is selected, fly map to it
-  const handleSelect = (restroom) => {
-    setSelected(restroom);
+  // The "hero" restroom is either the closest, OR the one the user promoted
+  const hero = useMemo(() => {
+    if (manualChoice) {
+      // Re-find the manual choice in sorted (to get fresh distance)
+      const updated = sorted.find((r) => r.id === manualChoice.id);
+      return updated || manualChoice;
+    }
+    return sorted[0] || null;
+  }, [sorted, manualChoice]);
+
+  // For alternatives row, put hero first (so AlternativesRow can .slice(1))
+  const orderedForAlts = useMemo(() => {
+    if (!hero) return sorted;
+    return [hero, ...sorted.filter((r) => r.id !== hero.id)];
+  }, [sorted, hero]);
+
+  const handlePromote = (r) => {
+    setManualChoice(r);
+    // Auto-scroll back to top so user sees the new hero
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // 8. "Near me" button — recenter on user
-  const handleLocate = () => {
+  const handleRefresh = () => {
+    setManualChoice(null);
     refreshLocation();
-    setRecenterKey((k) => k + 1);
   };
 
-  // --- Loading / error screens ---
+  // --- Loading / empty states ---
 
-  if (geoLoading) {
+  if (geoLoading && !position) {
     return (
       <div className="status-screen">
         <div className="spinner" />
@@ -113,7 +124,28 @@ function App() {
     );
   }
 
-  // --- Main layout ---
+  if (apiLoading && sorted.length === 0) {
+    return (
+      <div className="status-screen">
+        <div className="spinner" />
+        <p>Finding restrooms near you…</p>
+      </div>
+    );
+  }
+
+  if (sorted.length === 0) {
+    return (
+      <div className="status-screen">
+        <h2>No restrooms found nearby</h2>
+        <p>Try refreshing your location.</p>
+        <button className="cta-button" onClick={handleRefresh}>
+          Refresh
+        </button>
+      </div>
+    );
+  }
+
+  // --- Main: hero-first layout ---
 
   return (
     <div className="app">
@@ -122,6 +154,14 @@ function App() {
           <span className="app-icon" aria-hidden="true">🚻</span>
           <h1>Restroom Finder</h1>
         </div>
+        <button
+          className="header-refresh"
+          onClick={handleRefresh}
+          title="Refresh location"
+          aria-label="Refresh location"
+        >
+          ↻
+        </button>
       </header>
 
       {usingFallback && (
@@ -130,37 +170,62 @@ function App() {
         </div>
       )}
 
-      <FilterBar
-        filters={filters}
-        onChange={setFilters}
-        onLocate={handleLocate}
-      />
-
-      <div className="map-wrapper">
-        {apiLoading && (
-          <div className="map-loading">
-            <div className="spinner spinner-sm" />
-            Searching…
-          </div>
-        )}
-        <MapView
-          position={position}
-          restrooms={processedRestrooms}
-          onSelect={handleSelect}
-          selectedId={selected?.id}
-          recenterKey={recenterKey}
+      <main className="scroll-area">
+        <HeroCard
+          restroom={hero}
+          onDetails={() => setDetailsOpen(hero)}
         />
-      </div>
 
-      <RestroomList
-        restrooms={processedRestrooms}
-        onSelect={handleSelect}
-        selectedId={selected?.id}
-      />
+        <AlternativesRow
+          restrooms={orderedForAlts}
+          onPromote={handlePromote}
+        />
+
+        <button
+          className="map-toggle"
+          onClick={() => setMapOpen(true)}
+        >
+          🗺️  View all {sorted.length} on map
+        </button>
+
+        <p className="footer-note">
+          Data from{" "}
+          <a
+            href="https://www.refugerestrooms.org"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Refuge Restrooms
+          </a>
+        </p>
+      </main>
+
+      {/* Fullscreen map overlay */}
+      {mapOpen && (
+        <div className="map-overlay">
+          <button
+            className="map-overlay-close"
+            onClick={() => setMapOpen(false)}
+            aria-label="Close map"
+          >
+            ×
+          </button>
+          <MapView
+            position={position}
+            restrooms={sorted}
+            onSelect={(r) => {
+              handlePromote(r);
+              setMapOpen(false);
+            }}
+            selectedId={hero?.id}
+            recenterKey={0}
+          />
+        </div>
+      )}
 
       <RestroomPanel
-        restroom={selected}
-        onClose={() => setSelected(null)}
+        restroom={detailsOpen}
+        onClose={() => setDetailsOpen(null)}
       />
     </div>
   );
