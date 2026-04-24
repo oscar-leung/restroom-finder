@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { formatDistance } from "../utils/distance";
 import { trackEvent } from "../utils/analytics";
+import useSwipe from "../hooks/useSwipe";
 
 /**
  * HeroCard — the big "here's the closest restroom" card shown front-and-center.
@@ -7,27 +9,81 @@ import { trackEvent } from "../utils/analytics";
  * Design intent: when someone opens this app, they NEED a restroom. They should
  * see the nearest one and a huge "GO" button without any hunting.
  *
+ * Swipe:
+ *   - Swipe LEFT  → next closest restroom
+ *   - Swipe RIGHT → previous
+ *   - Keyboard: ← / → arrows (desktop parity)
+ *
  * Props:
- *   restroom   – the closest restroom (already has .distance)
- *   onDetails  – callback to open full details modal
- *   walkMins   – rough walking time in minutes
+ *   restroom        – restroom at the current position (already has .distance)
+ *   index           – 0-based position (0 = closest)
+ *   total           – number of restrooms cycleable (for the dot indicator)
+ *   onGo            – fired when user taps the GO button
+ *   onDetails       – open full details modal
+ *   onNext, onPrev  – step through the list
  */
-export default function HeroCard({ restroom, onDetails, onGo }) {
+export default function HeroCard({
+  restroom,
+  index = 0,
+  total = 1,
+  onGo,
+  onDetails,
+  onNext,
+  onPrev,
+}) {
+  // Swipe hook — bind attaches pointer handlers + a live transform
+  const { bind, offsetX, isDragging } = useSwipe({
+    onSwipeLeft: () => {
+      if (onNext) {
+        trackEvent("hero_swiped", { direction: "next", to_index: index + 1 });
+        onNext();
+      }
+    },
+    onSwipeRight: () => {
+      if (onPrev) {
+        trackEvent("hero_swiped", { direction: "prev", to_index: index - 1 });
+        onPrev();
+      }
+    },
+  });
+
+  // Keyboard arrow support (desktop)
+  useEffect(() => {
+    const handler = (e) => {
+      // Don't hijack arrows while typing in inputs/textareas
+      if (e.target.matches("input, textarea, select")) return;
+      if (e.key === "ArrowLeft") onPrev?.();
+      else if (e.key === "ArrowRight") onNext?.();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onPrev, onNext]);
+
   if (!restroom) return null;
 
-  // Rough walking estimate: average human walks ~80 m/min
   const walkMins = Math.max(1, Math.round(restroom.distance / 80));
   const address = [restroom.street, restroom.city].filter(Boolean).join(", ");
-
-  // Universal maps link — iOS opens Apple Maps, Android opens Google Maps,
-  // desktop opens maps.google.com
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${restroom.latitude},${restroom.longitude}&travelmode=walking`;
 
+  // Label changes when you've swiped off the closest:
+  //   "CLOSEST RESTROOM" (at index 0)
+  //   "#2 NEAREST" etc.
+  const label = index === 0 ? "CLOSEST RESTROOM" : `#${index + 1} NEAREST`;
+
+  // Dot indicator: show up to 6 dots (enough for the next-5 range)
+  const dotCount = Math.min(total, 6);
+
+  // Fade the card slightly while swiping so it feels like it's "giving way"
+  const heroStyle = {
+    ...bind.style,
+    opacity: isDragging ? Math.max(0.6, 1 - Math.abs(offsetX) / 400) : 1,
+  };
+
   return (
-    <div className="hero">
+    <div className="hero" {...bind} style={heroStyle}>
       <div className="hero-label">
         <span className="hero-pulse" />
-        CLOSEST RESTROOM
+        {label}
       </div>
 
       <h2 className="hero-name">{restroom.name || "Unnamed Restroom"}</h2>
@@ -60,6 +116,8 @@ export default function HeroCard({ restroom, onDetails, onGo }) {
         href={directionsUrl}
         target="_blank"
         rel="noopener noreferrer"
+        // Don't let the ancestor swipe handler start on the button
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={() => {
           trackEvent("go_clicked", {
             distance_m: Math.round(restroom.distance),
@@ -73,9 +131,28 @@ export default function HeroCard({ restroom, onDetails, onGo }) {
         GO
       </a>
 
-      <button className="hero-details" onClick={onDetails}>
+      <button
+        className="hero-details"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={onDetails}
+      >
         More details
       </button>
+
+      {/* Position dots + swipe hint */}
+      {total > 1 && (
+        <div className="hero-dots" aria-label={`Showing restroom ${index + 1} of ${total}`}>
+          {Array.from({ length: dotCount }).map((_, i) => (
+            <span
+              key={i}
+              className={`hero-dot ${i === Math.min(index, dotCount - 1) ? "hero-dot-active" : ""}`}
+            />
+          ))}
+          {index === 0 && total > 1 && (
+            <span className="hero-swipe-hint">swipe →</span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

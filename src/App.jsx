@@ -31,7 +31,9 @@ function App() {
   const [apiLoading, setApiLoading] = useState(false);
 
   // --- UI state ---
-  const [manualChoice, setManualChoice] = useState(null); // user-promoted alternative
+  // `heroIndex` is the position in `sorted` currently shown as the hero.
+  // 0 = closest, 1 = second closest, etc. Swipe / alternative-click changes it.
+  const [heroIndex, setHeroIndex] = useState(0);
   const [detailsOpen, setDetailsOpen] = useState(null);
   const [mapOpen, setMapOpen] = useState(false);
 
@@ -71,33 +73,36 @@ function App() {
       .sort((a, b) => a.distance - b.distance);
   }, [restrooms, position]);
 
-  // The "hero" restroom is either the closest, OR the one the user promoted
-  const hero = useMemo(() => {
-    if (manualChoice) {
-      // Re-find the manual choice in sorted (to get fresh distance)
-      const updated = sorted.find((r) => r.id === manualChoice.id);
-      return updated || manualChoice;
-    }
-    return sorted[0] || null;
-  }, [sorted, manualChoice]);
+  // Clamp heroIndex if the list shrunk
+  const safeIndex = Math.min(heroIndex, Math.max(0, sorted.length - 1));
+  const hero = sorted[safeIndex] || null;
 
-  // For alternatives row, put hero first (so AlternativesRow can .slice(1))
+  // For the alternatives row: everything except the current hero, ordered by distance
   const orderedForAlts = useMemo(() => {
     if (!hero) return sorted;
     return [hero, ...sorted.filter((r) => r.id !== hero.id)];
   }, [sorted, hero]);
 
+  // Promote: used by alternative-card taps and map-pin taps
   const handlePromote = (r) => {
-    setManualChoice(r);
+    const idx = sorted.findIndex((s) => s.id === r.id);
+    if (idx >= 0) setHeroIndex(idx);
     trackEvent("alternative_promoted", {
       distance_m: Math.round(r.distance || 0),
+      from_index: safeIndex,
+      to_index: idx,
     });
-    // Auto-scroll back to top so user sees the new hero
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Swipe → next / previous. Clamp at edges (no wrapping — 1st restroom
+  // swipe-right does nothing; feels correct for "closest" anchor).
+  const handleNext = () =>
+    setHeroIndex((i) => Math.min(i + 1, sorted.length - 1));
+  const handlePrev = () => setHeroIndex((i) => Math.max(i - 1, 0));
+
   const handleRefresh = () => {
-    setManualChoice(null);
+    setHeroIndex(0);
     refreshLocation();
   };
 
@@ -190,8 +195,12 @@ function App() {
 
         <HeroCard
           restroom={hero}
+          index={safeIndex}
+          total={sorted.length}
           onGo={recordUsage}
           onDetails={() => setDetailsOpen(hero)}
+          onNext={handleNext}
+          onPrev={handlePrev}
         />
 
         <AlternativesRow
