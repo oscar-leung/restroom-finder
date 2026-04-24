@@ -12,7 +12,7 @@ import { trackEvent } from "../utils/analytics";
  *   onDetails  – callback to open full details modal
  *   walkMins   – rough walking time in minutes
  */
-export default function HeroCard({ restroom, onDetails }) {
+export default function HeroCard({ restroom, onDetails, onGo }) {
   if (!restroom) return null;
 
   // Rough walking estimate: average human walks ~80 m/min
@@ -60,13 +60,14 @@ export default function HeroCard({ restroom, onDetails }) {
         href={directionsUrl}
         target="_blank"
         rel="noopener noreferrer"
-        onClick={() =>
+        onClick={() => {
           trackEvent("go_clicked", {
             distance_m: Math.round(restroom.distance),
             accessible: !!restroom.accessible,
             unisex: !!restroom.unisex,
-          })
-        }
+          });
+          onGo && onGo();
+        }}
       >
         <span className="hero-go-arrow">→</span>
         GO

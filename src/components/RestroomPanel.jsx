@@ -1,4 +1,5 @@
 import { formatDistance } from "../utils/distance";
+import Reviews from "./Reviews";
 
 /**
  * RestroomPanel — full details modal for a selected restroom.
@@ -85,6 +86,8 @@ export default function RestroomPanel({ restroom, onClose }) {
         >
           Get Directions →
         </a>
+
+        <Reviews restroomId={restroom.id} />
       </div>
     </>
   );

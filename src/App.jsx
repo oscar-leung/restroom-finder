@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import useGeolocation from "./hooks/useGeolocation";
+import useUsagePatterns from "./hooks/useUsagePatterns";
 import { fetchNearbyRestrooms } from "./services/restroomApi";
 import { distanceMeters } from "./utils/distance";
 import HeroCard from "./components/HeroCard";
@@ -33,6 +34,10 @@ function App() {
   const [manualChoice, setManualChoice] = useState(null); // user-promoted alternative
   const [detailsOpen, setDetailsOpen] = useState(null);
   const [mapOpen, setMapOpen] = useState(false);
+
+  // --- Usage patterns (privacy-first, localStorage-only) ---
+  const { record: recordUsage, hint: usageHint, inTypicalWindow } =
+    useUsagePatterns();
 
   // Fetch when position resolves
   useEffect(() => {
@@ -175,8 +180,17 @@ function App() {
       )}
 
       <main className="scroll-area">
+        {usageHint && (
+          <div className={`usage-hint ${inTypicalWindow ? "usage-hint-active" : ""}`}>
+            <span aria-hidden="true">🕐</span>
+            {usageHint}
+            {inTypicalWindow && " — you might want one soon"}
+          </div>
+        )}
+
         <HeroCard
           restroom={hero}
+          onGo={recordUsage}
           onDetails={() => setDetailsOpen(hero)}
         />
 
