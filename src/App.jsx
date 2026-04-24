@@ -7,6 +7,8 @@ import HeroCard from "./components/HeroCard";
 import AlternativesRow from "./components/AlternativesRow";
 import MapView from "./components/MapView";
 import RestroomPanel from "./components/RestroomPanel";
+import AddBathroomModal from "./components/AddBathroomModal";
+import { getUserBathrooms } from "./services/userBathrooms";
 import { trackEvent } from "./utils/analytics";
 import "./index.css";
 
@@ -27,8 +29,10 @@ function App() {
 
   // --- Restrooms ---
   const [restrooms, setRestrooms] = useState([]);
+  const [userBathrooms, setUserBathrooms] = useState(() => getUserBathrooms());
   const [apiError, setApiError] = useState(null);
   const [apiLoading, setApiLoading] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
 
   // --- UI state ---
   // `heroIndex` is the position in `sorted` currently shown as the hero.
@@ -57,10 +61,11 @@ function App() {
       });
   }, [position?.latitude, position?.longitude]);
 
-  // Add .distance + sort by closest
+  // Merge API results + user-added bathrooms, then add .distance + sort
   const sorted = useMemo(() => {
     if (!position) return [];
-    return restrooms
+    const combined = [...restrooms, ...userBathrooms];
+    return combined
       .map((r) => ({
         ...r,
         distance: distanceMeters(
@@ -71,7 +76,7 @@ function App() {
         ),
       }))
       .sort((a, b) => a.distance - b.distance);
-  }, [restrooms, position]);
+  }, [restrooms, userBathrooms, position]);
 
   // Clamp heroIndex if the list shrunk
   const safeIndex = Math.min(heroIndex, Math.max(0, sorted.length - 1));
@@ -163,6 +168,9 @@ function App() {
 
   return (
     <div className="app">
+      {/* Aurora blobs — decorative, pointer-events: none */}
+      <div className="aurora" aria-hidden="true"><span /></div>
+
       <header className="app-header">
         <div className="app-brand">
           <span className="app-icon" aria-hidden="true">🚻</span>
@@ -218,6 +226,19 @@ function App() {
           🗺️  View all {sorted.length} on map
         </button>
 
+        <button
+          className="add-bathroom-btn"
+          onClick={() => {
+            setAddOpen(true);
+            trackEvent("add_bathroom_opened");
+          }}
+          disabled={!geoPosition}
+          title={!geoPosition ? "Enable location to add a bathroom" : "Add a bathroom at your current location"}
+        >
+          <span className="plus" aria-hidden="true">+</span>
+          Add a bathroom here
+        </button>
+
         <a
           className="tip-jar"
           href="https://buymeacoffee.com/holymushy"
@@ -267,6 +288,18 @@ function App() {
         restroom={detailsOpen}
         onClose={() => setDetailsOpen(null)}
       />
+
+      {addOpen && (
+        <AddBathroomModal
+          position={geoPosition}
+          onClose={() => setAddOpen(false)}
+          onAdded={(entry) => {
+            setUserBathrooms(getUserBathrooms());
+            // Promote it to the hero so the user immediately sees their addition
+            setHeroIndex(0);
+          }}
+        />
+      )}
     </div>
   );
 }
