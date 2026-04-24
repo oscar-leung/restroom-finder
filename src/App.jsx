@@ -211,7 +211,7 @@ function App() {
 
         <a
           className="tip-jar"
-          href="https://buymeacoffee.com/oscarleung"
+          href="https://buymeacoffee.com/holymushy"
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => trackEvent("tip_clicked")}
