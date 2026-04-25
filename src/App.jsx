@@ -8,7 +8,9 @@ import AlternativesRow from "./components/AlternativesRow";
 import MapView from "./components/MapView";
 import RestroomPanel from "./components/RestroomPanel";
 import AddBathroomModal from "./components/AddBathroomModal";
+import RecentlyAdded from "./components/RecentlyAdded";
 import { getUserBathrooms } from "./services/userBathrooms";
+import { recordVisit, getAllVisits } from "./services/visitTracker";
 import { trackEvent } from "./utils/analytics";
 import "./index.css";
 
@@ -40,6 +42,8 @@ function App() {
   const [heroIndex, setHeroIndex] = useState(0);
   const [detailsOpen, setDetailsOpen] = useState(null);
   const [mapOpen, setMapOpen] = useState(false);
+  // Visit map (bathroom_id → {count, lastVisited}). Updated on each GO tap.
+  const [visits, setVisits] = useState(() => getAllVisits());
 
   // --- Usage patterns (privacy-first, localStorage-only) ---
   const { record: recordUsage, hint: usageHint, inTypicalWindow } =
@@ -110,6 +114,26 @@ function App() {
     setHeroIndex(0);
     refreshLocation();
   };
+
+  // Combined GO handler: records pattern + per-bathroom visit count, fires GA4
+  const handleGo = (restroom) => {
+    if (!restroom) return;
+    recordUsage();
+    const updated = recordVisit(restroom.id);
+    setVisits(getAllVisits());
+    trackEvent("bathroom_visited", {
+      id: String(restroom.id),
+      visit_count: updated?.count || 1,
+      distance_m: Math.round(restroom.distance || 0),
+    });
+  };
+
+  // Bucket counts for the header summary ("X within 500m")
+  const bucketCounts = useMemo(() => {
+    const close = sorted.filter((r) => r.distance <= 500).length;
+    const med = sorted.filter((r) => r.distance <= 1000).length;
+    return { total: sorted.length, close, med };
+  }, [sorted]);
 
   // --- Loading / empty states ---
 
@@ -201,11 +225,31 @@ function App() {
           </div>
         )}
 
+        {/* Visible total + nearby bucket counts (Legal-Walls-style) */}
+        <div className="count-summary">
+          <span className="count-num">{bucketCounts.total}</span>
+          <span className="count-label">nearby</span>
+          {bucketCounts.close > 0 && (
+            <>
+              <span className="count-divider" />
+              <span className="count-bucket">
+                <strong>{bucketCounts.close}</strong> within 500&thinsp;m
+              </span>
+            </>
+          )}
+          {bucketCounts.med > bucketCounts.close && (
+            <span className="count-bucket count-bucket-dim">
+              <strong>{bucketCounts.med}</strong> within 1&thinsp;km
+            </span>
+          )}
+        </div>
+
         <HeroCard
           restroom={hero}
           index={safeIndex}
           total={sorted.length}
-          onGo={recordUsage}
+          visitCount={hero ? visits[hero.id]?.count || 0 : 0}
+          onGo={() => handleGo(hero)}
           onDetails={() => setDetailsOpen(hero)}
           onNext={handleNext}
           onPrev={handlePrev}
@@ -214,6 +258,11 @@ function App() {
         <AlternativesRow
           restrooms={orderedForAlts}
           onPromote={handlePromote}
+        />
+
+        <RecentlyAdded
+          userBathrooms={sorted.filter((r) => r.source === "user")}
+          onSelect={handlePromote}
         />
 
         <button
@@ -274,6 +323,7 @@ function App() {
           <MapView
             position={position}
             restrooms={sorted}
+            visits={visits}
             onSelect={(r) => {
               handlePromote(r);
               setMapOpen(false);
@@ -286,6 +336,7 @@ function App() {
 
       <RestroomPanel
         restroom={detailsOpen}
+        visitRecord={detailsOpen ? visits[detailsOpen.id] : null}
         onClose={() => setDetailsOpen(null)}
       />
 

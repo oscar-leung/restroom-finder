@@ -26,6 +26,7 @@ export default function HeroCard({
   restroom,
   index = 0,
   total = 1,
+  visitCount = 0,
   onGo,
   onDetails,
   onNext,
@@ -108,6 +109,11 @@ export default function HeroCard({
         )}
         {restroom.unisex && (
           <span className="badge badge-unisex">⚧ Gender Neutral</span>
+        )}
+        {visitCount > 0 && (
+          <span className="badge badge-visited" title="You've been here before">
+            👟 visited {visitCount}×
+          </span>
         )}
       </div>
 

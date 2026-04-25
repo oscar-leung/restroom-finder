@@ -1,4 +1,5 @@
 import { formatDistance } from "../utils/distance";
+import { formatLastVisit } from "../services/visitTracker";
 import Reviews from "./Reviews";
 
 /**
@@ -9,7 +10,7 @@ import Reviews from "./Reviews";
  *   restroom  – restroom object (or null)
  *   onClose   – close callback
  */
-export default function RestroomPanel({ restroom, onClose }) {
+export default function RestroomPanel({ restroom, visitRecord, onClose }) {
   if (!restroom) return null;
 
   const address = [restroom.street, restroom.city, restroom.state]
@@ -46,6 +47,12 @@ export default function RestroomPanel({ restroom, onClose }) {
           {score !== 0 && (
             <span className="meta-item">
               {score > 0 ? "👍" : "👎"} {Math.abs(score)}
+            </span>
+          )}
+          {visitRecord && visitRecord.count > 0 && (
+            <span className="meta-item meta-visited">
+              <span aria-hidden="true">👟</span> {visitRecord.count}× by you
+              {visitRecord.lastVisited && ` · last ${formatLastVisit(visitRecord.lastVisited)}`}
             </span>
           )}
         </div>
