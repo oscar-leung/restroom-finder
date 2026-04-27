@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { formatDistance } from "../utils/distance";
 import { trackEvent } from "../utils/analytics";
 import { getFlag } from "../utils/featureFlags";
+import { getStats } from "../services/reviews";
+import { isOpenNow } from "../utils/hours";
 import useSwipe from "../hooks/useSwipe";
 
 /**
@@ -111,6 +113,25 @@ export default function HeroCard({
         {restroom.unisex && (
           <span className="badge badge-unisex">⚧ Gender Neutral</span>
         )}
+        {restroom.fee === false && (
+          <span className="badge badge-free">💰 Free</span>
+        )}
+        {(() => {
+          const { isOpen, knownStatus } = isOpenNow(restroom.opening_hours);
+          if (!knownStatus) return null;
+          return isOpen
+            ? <span className="badge badge-open">🟢 Open now</span>
+            : <span className="badge badge-closed">🔴 Closed</span>;
+        })()}
+        {(() => {
+          const s = getStats(restroom.id);
+          if (!s.count) return null;
+          return (
+            <span className="badge badge-rating" title={`${s.count} review${s.count === 1 ? "" : "s"}`}>
+              ⭐ {s.avgRating} ({s.count})
+            </span>
+          );
+        })()}
         {visitCount > 0 && (
           <span className="badge badge-visited" title="You've been here before">
             👟 visited {visitCount}×

@@ -9,8 +9,10 @@ import MapView from "./components/MapView";
 import RestroomPanel from "./components/RestroomPanel";
 import AddBathroomModal from "./components/AddBathroomModal";
 import RecentlyAdded from "./components/RecentlyAdded";
+import FilterBar from "./components/FilterBar";
 import { getUserBathrooms } from "./services/userBathrooms";
 import { recordVisit, getAllVisits } from "./services/visitTracker";
+import { isOpenNow } from "./utils/hours";
 import { trackEvent } from "./utils/analytics";
 import "./index.css";
 
@@ -44,6 +46,13 @@ function App() {
   const [mapOpen, setMapOpen] = useState(false);
   // Visit map (bathroom_id → {count, lastVisited}). Updated on each GO tap.
   const [visits, setVisits] = useState(() => getAllVisits());
+  // Active filters
+  const [filters, setFilters] = useState({
+    accessible: false,
+    unisex: false,
+    free: false,
+    openNow: false,
+  });
 
   // --- Usage patterns (privacy-first, localStorage-only) ---
   const { record: recordUsage, hint: usageHint, inTypicalWindow } =
@@ -65,7 +74,7 @@ function App() {
       });
   }, [position?.latitude, position?.longitude]);
 
-  // Merge API results + user-added bathrooms, then add .distance + sort
+  // Merge API + user-added, attach distance, apply filters, sort by distance.
   const sorted = useMemo(() => {
     if (!position) return [];
     const combined = [...restrooms, ...userBathrooms];
@@ -79,8 +88,18 @@ function App() {
           r.longitude
         ),
       }))
+      .filter((r) => !filters.accessible || r.accessible)
+      .filter((r) => !filters.unisex || r.unisex)
+      // Free chip: hide entries we KNOW charge a fee. Unknown stays visible.
+      .filter((r) => !filters.free || r.fee !== true)
+      // Open-now chip: only show entries we KNOW are open. Unknown hidden when filter active.
+      .filter((r) => {
+        if (!filters.openNow) return true;
+        const { isOpen, knownStatus } = isOpenNow(r.opening_hours);
+        return knownStatus && isOpen;
+      })
       .sort((a, b) => a.distance - b.distance);
-  }, [restrooms, userBathrooms, position]);
+  }, [restrooms, userBathrooms, position, filters]);
 
   // Clamp heroIndex if the list shrunk
   const safeIndex = Math.min(heroIndex, Math.max(0, sorted.length - 1));
@@ -218,6 +237,12 @@ function App() {
           Showing San Francisco — enable location for your area
         </div>
       )}
+
+      <FilterBar
+        filters={filters}
+        onChange={setFilters}
+        onLocate={handleRefresh}
+      />
 
       <main className="scroll-area">
         {usageHint && (

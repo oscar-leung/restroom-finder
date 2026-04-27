@@ -1,5 +1,6 @@
 import { formatDistance } from "../utils/distance";
 import { formatLastVisit } from "../services/visitTracker";
+import { isOpenNow, formatHours } from "../utils/hours";
 import Reviews from "./Reviews";
 
 /**
@@ -66,10 +67,30 @@ export default function RestroomPanel({ restroom, visitRecord, onClose }) {
           {restroom.unisex && (
             <span className="badge badge-unisex">⚧ Gender Neutral</span>
           )}
-          {!restroom.accessible && !restroom.unisex && (
-            <span className="badge badge-none">No accessibility info</span>
+          {restroom.fee === false && (
+            <span className="badge badge-free">💰 Free</span>
+          )}
+          {restroom.fee === true && (
+            <span className="badge badge-paid">Paid</span>
+          )}
+          {(() => {
+            const { isOpen, knownStatus } = isOpenNow(restroom.opening_hours);
+            if (!knownStatus) return null;
+            return isOpen
+              ? <span className="badge badge-open">🟢 Open now</span>
+              : <span className="badge badge-closed">🔴 Closed now</span>;
+          })()}
+          {!restroom.accessible && !restroom.unisex && restroom.fee == null && !restroom.opening_hours && (
+            <span className="badge badge-none">No info</span>
           )}
         </div>
+
+        {restroom.opening_hours && (
+          <section className="modal-section">
+            <h3>Hours</h3>
+            <p>{formatHours(restroom.opening_hours)}</p>
+          </section>
+        )}
 
         {restroom.directions && (
           <section className="modal-section">

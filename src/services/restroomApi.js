@@ -1,5 +1,8 @@
+import { fetchNYC } from "./dataSources/nyc";
+import { fetchSF } from "./dataSources/sf";
+
 /**
- * Restroom data layer — aggregates TWO sources and dedupes:
+ * Restroom data layer — aggregates 4+ sources and dedupes:
  *
  *   1. Refuge Restrooms   – community-maintained, rich accessibility & gender
  *                           info, US-heavy.
@@ -76,7 +79,6 @@ async function fetchFromOSM(lat, lng) {
 
   return elements
     .map((el) => {
-      // Nodes have lat/lon directly; ways/relations need el.center
       const coords =
         el.type === "node"
           ? { lat: el.lat, lng: el.lon }
@@ -86,13 +88,12 @@ async function fetchFromOSM(lat, lng) {
       if (!coords) return null;
 
       const t = el.tags || {};
-      // OSM booleans come in as "yes"/"no"/"designated" strings
       const yes = (v) => v === "yes" || v === "designated";
 
       return {
         id: `osm-${el.type}-${el.id}`,
         source: "osm",
-        name: t.name || t.operator || t.brand || "Public Restroom",
+        name: bestName(t),
         street: [t["addr:housenumber"], t["addr:street"]].filter(Boolean).join(" "),
         city: t["addr:city"],
         state: t["addr:state"],
@@ -101,15 +102,11 @@ async function fetchFromOSM(lat, lng) {
         longitude: coords.lng,
         accessible: yes(t.wheelchair),
         unisex: yes(t.unisex) || t["toilets:unisex"] === "yes",
+        // STRUCTURED — not buried in comment string anymore
+        fee: t.fee === "yes" ? true : t.fee === "no" ? false : null,
+        opening_hours: t.opening_hours || null,
         directions: t.description || null,
-        comment:
-          [
-            t.fee === "yes" && "Fee required",
-            t.access && `Access: ${t.access}`,
-            t.opening_hours && `Hours: ${t.opening_hours}`,
-          ]
-            .filter(Boolean)
-            .join(" · ") || null,
+        comment: t.access && t.access !== "yes" ? `Access: ${t.access}` : null,
         upvote: 0,
         downvote: 0,
       };
@@ -117,46 +114,84 @@ async function fetchFromOSM(lat, lng) {
     .filter(Boolean);
 }
 
+/**
+ * Best-effort human-readable name from OSM tags.
+ *
+ * The top complaint about Toilet Finder was "name = address". We do
+ * better: rich tags first, generic words only as last resort, and we
+ * detect when OSM's `name` is just "Toilets" so we can improve on it.
+ */
+function bestName(t) {
+  const generic = /^(toilet|toilets|wc|restroom|public toilet|public restroom|bathroom)$/i;
+
+  // 1. A real proper name (not a generic word)
+  if (t.name && !generic.test(t.name.trim())) return t.name;
+
+  // 2. Operator / brand — "Starbucks", "BP", "Westfield Mall"
+  if (t.operator) return `Restroom · ${t.operator}`;
+  if (t.brand) return `Restroom · ${t.brand}`;
+
+  // 3. Named place it's inside — park, station, etc.
+  if (t["addr:place"]) return `Restroom · ${t["addr:place"]}`;
+
+  // 4. Generic fallback
+  return t.name || "Public Restroom";
+}
+
 /* ------------------------------ Merge ------------------------------ */
 
 /**
- * Dedupe by rounding lat/lng to ~11m precision (4 decimal places).
- * If two sources report a restroom at the same location, prefer the
- * Refuge one (richer metadata).
+ * Dedupe by rounding lat/lng to ~11m precision. When two sources report
+ * the same location, prefer city open-data (most authoritative) > Refuge
+ * (rich community metadata) > OSM (broadest coverage).
  */
+const SOURCE_PRIORITY = { nyc: 4, sf: 4, refuge: 3, osm: 2, user: 5 };
+
 function dedupe(list) {
   const seen = new Map();
   for (const r of list) {
     const key = `${r.latitude.toFixed(4)},${r.longitude.toFixed(4)}`;
     const existing = seen.get(key);
-    if (!existing || (r.source === "refuge" && existing.source === "osm")) {
+    const incomingPri = SOURCE_PRIORITY[r.source] ?? 1;
+    const existingPri = SOURCE_PRIORITY[existing?.source] ?? 0;
+    if (!existing || incomingPri > existingPri) {
       seen.set(key, r);
+    } else {
+      // If this entry has structured fields the existing one lacks, fold them in
+      const merged = { ...existing };
+      if (existing.fee == null && r.fee != null) merged.fee = r.fee;
+      if (!existing.opening_hours && r.opening_hours) merged.opening_hours = r.opening_hours;
+      if (existing.accessible !== true && r.accessible) merged.accessible = true;
+      if (existing.unisex !== true && r.unisex) merged.unisex = true;
+      seen.set(key, merged);
     }
   }
   return Array.from(seen.values());
 }
 
 /**
- * Public API — fetch from both sources in parallel, merge, dedupe.
- * If one source fails the other still returns results.
+ * Public API — fetch from every available source in parallel, merge,
+ * dedupe. City sources are geofenced internally so they no-op outside
+ * their region. If one source fails, the others still return results.
  */
 export async function fetchNearbyRestrooms(lat, lng) {
-  const [refugeResult, osmResult] = await Promise.allSettled([
+  const results = await Promise.allSettled([
     fetchFromRefuge(lat, lng),
     fetchFromOSM(lat, lng),
+    fetchNYC(lat, lng),
+    fetchSF(lat, lng),
   ]);
 
   const combined = [];
-  if (refugeResult.status === "fulfilled") combined.push(...refugeResult.value);
-  if (osmResult.status === "fulfilled") combined.push(...osmResult.value);
+  for (const r of results) {
+    if (r.status === "fulfilled" && Array.isArray(r.value)) {
+      combined.push(...r.value);
+    }
+  }
 
-  // If BOTH failed, surface the error
   if (combined.length === 0) {
-    const msg =
-      refugeResult.status === "rejected"
-        ? refugeResult.reason?.message
-        : osmResult.reason?.message;
-    throw new Error(msg || "No data sources responded");
+    const firstError = results.find((r) => r.status === "rejected");
+    throw new Error(firstError?.reason?.message || "No data sources responded");
   }
 
   return dedupe(combined);

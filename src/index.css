@@ -1293,3 +1293,59 @@ body {
 .aurora span {
   background: radial-gradient(circle, rgba(139, 92, 246, 0.45), transparent 70%);
 }
+
+/* ===== New badge styles for Gotta Go P0 features ===== */
+.badge-free {
+  background: #d1fae5;
+  color: #065f46;
+}
+.badge-paid {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.badge-open {
+  background: #d1fae5;
+  color: #065f46;
+}
+.badge-closed {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.badge-rating {
+  background: #fef3c7;
+  color: #78350f;
+}
+
+/* Hero variants — slightly translucent on the gradient card */
+.hero .badge-free,
+.hero .badge-open {
+  background: rgba(16, 185, 129, 0.35) !important;
+  color: white !important;
+}
+.hero .badge-closed {
+  background: rgba(239, 68, 68, 0.35) !important;
+  color: white !important;
+}
+.hero .badge-rating {
+  background: rgba(251, 191, 36, 0.35) !important;
+  color: white !important;
+}
+
+/* Stars on the small alt cards */
+.alt-rating {
+  font-size: 11px;
+  font-weight: 700;
+  color: #92400e;
+}
+
+/* ===== Filter bar layout fix — keep chips on one horizontally-scrollable row ===== */
+.filter-bar {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.filter-bar .chip {
+  flex-shrink: 0;
+}
+.filter-bar .chip-locate {
+  margin-left: 8px; /* override the prior margin-left: auto that caused wrap */
+}
