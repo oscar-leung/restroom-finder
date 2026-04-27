@@ -40,15 +40,24 @@ scaffolded for native apps when you're ready.
 ### Data + features
 - [x] Refuge Restrooms API integration
 - [x] OpenStreetMap Overpass API integration
-- [x] Dedupe by lat/lng proximity
+- [x] **NYC Public Restrooms open-data integration** (geofenced)
+- [x] **SF Pit Stops open-data integration** (geofenced)
+- [x] Smart dedupe (priority: user > city > Refuge > OSM, with metadata merge)
 - [x] Accessibility + gender-neutral filters
+- [x] **💰 Free filter** (hide entries that charge a fee)
+- [x] **🕐 Open-now filter** (parsed from opening_hours)
 - [x] Add-a-bathroom flow (your GPS + optional share to Refuge)
-- [x] Reviews (per-bathroom, localStorage MVP)
+- [x] Reviews — 1-5 stars overall + cleanliness, with comments
+- [x] **Review stars on hero + alt cards** (⭐ 4.2 (3))
+- [x] **Better business names** (operator/brand fallback when OSM name is generic)
+- [x] **Opening hours display** in details modal
+- [x] **Open-now / closed-now badge** on hero + cards
 - [x] Usage pattern tracker ("you usually go around 2pm")
 - [x] Per-bathroom visit tracker
 - [x] Personal concentration map (pins sized by your visits, count badge on 3+)
 - [x] Map legend (public / added by you / your usuals)
 - [x] User-added bathrooms colored amber with left border accent
+- [x] A/B testing framework (`go_button_label` GO vs GO NOW running now)
 
 ### Deploy + infra
 - [x] GitHub Pages CI/CD (`.github/workflows/deploy.yml`)
