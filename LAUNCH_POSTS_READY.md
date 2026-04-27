@@ -1,4 +1,4 @@
-# Restroom Finder — Launch Posts (Ready to Copy-Paste)
+# Gotta Go — Launch Posts (Ready to Copy-Paste)
 
 > Live: https://oscar-leung.github.io/restroom-finder/
 > Source: https://github.com/oscar-leung/restroom-finder
@@ -36,7 +36,7 @@ A loose timing plan. Stagger the posts so you can actually be present in each th
 ## 1. Product Hunt (Tuesday, 12:01am PT)
 
 **Title (≤60 char):**
-Restroom Finder — closest public bathroom, instantly
+Gotta Go — closest public bathroom, instantly
 
 **Tagline (≤60 char):**
 One tap to the nearest restroom, with directions
@@ -46,7 +46,7 @@ Maps, Travel, Health & Fitness, Productivity, Open Source
 
 **Description (~250 words):**
 
-Restroom Finder opens straight to a big GO button. Tap it and you get the closest public bathroom to wherever you're standing, with one-tap directions in Apple or Google Maps. That's the whole pitch.
+Gotta Go opens straight to a big GO button. Tap it and you get the closest public bathroom to wherever you're standing, with one-tap directions in Apple or Google Maps. That's the whole pitch.
 
 I built it because every existing "find a bathroom" app either makes you sign up, buries the answer three taps deep, or shows you the same gas station on repeat. The GO button is the differentiator — no map-panning, no list-scrolling, no "filter by distance" dropdown. You're shown one good answer and a swipe takes you to the next one if it's closed or you don't like the look of it.
 
@@ -82,7 +82,7 @@ Not trying to be a social network or a bathroom-rating game. Just trying to make
 ## 2. r/InternetIsBeautiful (Sunday evening or Monday morning US time)
 
 **Title:**
-Restroom Finder — opens to the closest public bathroom, one tap to directions
+Gotta Go — opens to the closest public bathroom, one tap to directions
 
 **Body:**
 

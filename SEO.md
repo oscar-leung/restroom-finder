@@ -1,6 +1,6 @@
 # SEO Strategy
 
-Restroom Finder has enormous long-tail search potential. Every "public
+Gotta Go has enormous long-tail search potential. Every "public
 restrooms near me" or "[city] bathroom" query is exactly what the app
 solves. The strategy is **programmatic geo-SEO**.
 
@@ -37,7 +37,7 @@ Add to `index.html`:
 {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  "name": "Restroom Finder",
+  "name": "Gotta Go",
   "description": "Find the closest public restroom near you, instantly.",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "Web",

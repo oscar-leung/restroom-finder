@@ -1,4 +1,4 @@
-# Making Money With Restroom Finder
+# Making Money With Gotta Go
 
 A realistic, phased plan — no "get rich quick" stuff. Each phase builds on
 the previous one. You can skip phases, but you can't skip users: **nothing
@@ -95,7 +95,7 @@ so revenue compounds as users arrive.
 
 ## Phase 4 — Premium tier (Weeks 10+) · Revenue: $200–$2000/mo
 
-**"Restroom Finder Pro" — $2.99/mo or $19.99/year**
+**"Gotta Go Pro" — $2.99/mo or $19.99/year**
 
 Features worth paying for:
 - **No ads** (the main one — people will pay to remove ads)

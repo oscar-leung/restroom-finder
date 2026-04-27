@@ -1,5 +1,5 @@
 /* =============================================================
-   Restroom Finder — hero-first, mobile-native, "I need to go NOW"
+   Gotta Go — hero-first, mobile-native, "I need to go NOW"
    ============================================================= */
 
 :root {
@@ -1247,4 +1247,49 @@ body {
   box-shadow: 0 0 0 2px white, 0 0 0 4px #f59e0b;
   width: 12px;
   height: 14px;
+}
+
+/* ===== Gotta Go brand header ===== */
+.app-icon-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: block;
+  flex-shrink: 0;
+}
+.app-header h1 {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  font-size: 17px;
+  letter-spacing: -0.3px;
+}
+.app-header .app-tag {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0;
+  margin-top: 1px;
+}
+
+/* =============================================================
+   Upgraded mesh-gradient background (richer than the prior aurora)
+   ============================================================= */
+body {
+  background:
+    radial-gradient(1100px 700px at 90% -10%, rgba(236, 72, 153, 0.18), transparent 55%),
+    radial-gradient(900px 600px at -10% 30%, rgba(139, 92, 246, 0.18), transparent 55%),
+    radial-gradient(700px 500px at 50% 110%, rgba(168, 85, 247, 0.14), transparent 60%),
+    linear-gradient(180deg, #faf7ff 0%, #f8fafc 60%);
+}
+
+/* Stronger aurora glow for the upgraded brand */
+.aurora::before {
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.6), transparent 70%);
+}
+.aurora::after {
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.6), transparent 70%);
+}
+.aurora span {
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.45), transparent 70%);
 }

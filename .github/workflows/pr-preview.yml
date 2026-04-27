@@ -1,0 +1,77 @@
+name: PR Preview
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+# Reuse the same install across jobs
+concurrency:
+  group: pr-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  build-and-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # Lint must pass before we even build the preview
+      - name: Lint
+        run: npm run lint --if-present
+        continue-on-error: false
+
+      - name: Build PR bundle
+        env:
+          # PR previews share the prod GA ID with an extra dimension so
+          # you can segment them in GA4. Or comment out for cleaner data.
+          VITE_GA_ID: ${{ secrets.VITE_GA_ID }}
+          # Override base path for preview hosting (Cloudflare Pages, surge.sh, etc.)
+          VITE_BASE: /
+        run: npm run build
+
+      - name: Bundle size summary
+        id: size
+        run: |
+          {
+            echo "size_md<<EOF"
+            echo "## 📦 Bundle size"
+            echo ""
+            echo '```'
+            ls -lh dist/assets/ | awk 'NR>1 {print $5, $9}'
+            echo '```'
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+      # Drop a sticky comment summarising the build. To wire up an actual
+      # preview URL, swap in `cloudflare/pages-action`, `nwtgck/actions-netlify`,
+      # or `surge.sh` here — they all accept dist/ and return a URL.
+      - name: Sticky preview comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pr-preview
+          message: |
+            ### 🚀 Preview build for `${{ github.event.pull_request.head.sha }}`
+
+            ✅ Build succeeded.
+
+            **To deploy this preview**: connect a deploy provider (Cloudflare Pages / Netlify / Surge.sh) and replace the bundle-size step with their action.
+
+            **A/B testing checklist for this PR:**
+            - [ ] Behind a feature flag in `src/utils/featureFlags.js`?
+            - [ ] GA4 event added with experiment label?
+            - [ ] Rollout plan: 10% → 50% → 100%?
+            - [ ] Rollback plan documented in PR description?
+
+            ${{ steps.size.outputs.size_md }}

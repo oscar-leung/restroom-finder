@@ -1,4 +1,4 @@
-# Restroom Finder — Status & Next Steps
+# Gotta Go — Status & Next Steps
 
 **Live**: https://oscar-leung.github.io/restroom-finder/
 **Repo**: https://github.com/oscar-leung/restroom-finder
@@ -86,7 +86,7 @@ keywords (e.g. "have the marketing-agent write a TikTok script").
 ### 1. Google Analytics 4 setup (~10 min)
 **Why you**: requires your Google account login.
 **Do**:
-1. https://analytics.google.com/ → create property "Restroom Finder"
+1. https://analytics.google.com/ → create property "Gotta Go"
 2. Add a Web data stream pointing to `https://oscar-leung.github.io/restroom-finder/`
 3. Copy the Measurement ID (`G-XXXXXXXXXX`)
 4. Add as repo secret at https://github.com/oscar-leung/restroom-finder/settings/secrets/actions

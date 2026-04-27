@@ -197,8 +197,11 @@ function App() {
 
       <header className="app-header">
         <div className="app-brand">
-          <span className="app-icon" aria-hidden="true">🚻</span>
-          <h1>Restroom Finder</h1>
+          <img className="app-icon-img" src={`${import.meta.env.BASE_URL}icon-192.svg`} alt="" width="32" height="32" />
+          <h1>
+            Gotta Go
+            <span className="app-tag" aria-hidden="true">closest bathroom, instantly</span>
+          </h1>
         </div>
         <button
           className="header-refresh"

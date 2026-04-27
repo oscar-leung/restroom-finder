@@ -19,7 +19,7 @@ is drafted to the tone of each platform.
 
 **Title** (60 char max):
 ```
-Restroom Finder — Instantly find the closest public bathroom
+Gotta Go — Instantly find the closest public bathroom
 ```
 
 **Tagline** (60 char max):
@@ -163,7 +163,7 @@ HN is technical. They want to see the craft.
 
 **Title**:
 ```
-Show HN: Restroom Finder – opens straight to the closest one, one tap to directions
+Show HN: Gotta Go – opens straight to the closest one, one tap to directions
 ```
 
 **Body**:

@@ -1,4 +1,4 @@
-# Restroom Finder
+# Gotta Go
 
 Find public restrooms near you — fast, free, and mobile-first.
 

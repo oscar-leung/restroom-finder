@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { formatDistance } from "../utils/distance";
 import { trackEvent } from "../utils/analytics";
+import { getFlag } from "../utils/featureFlags";
 import useSwipe from "../hooks/useSwipe";
 
 /**
@@ -122,19 +123,19 @@ export default function HeroCard({
         href={directionsUrl}
         target="_blank"
         rel="noopener noreferrer"
-        // Don't let the ancestor swipe handler start on the button
         onPointerDown={(e) => e.stopPropagation()}
         onClick={() => {
           trackEvent("go_clicked", {
             distance_m: Math.round(restroom.distance),
             accessible: !!restroom.accessible,
             unisex: !!restroom.unisex,
+            variant: getFlag("go_button_label"),
           });
           onGo && onGo();
         }}
       >
         <span className="hero-go-arrow">→</span>
-        GO
+        {getFlag("go_button_label") === "go-now" ? "GO NOW" : "GO"}
       </a>
 
       <button

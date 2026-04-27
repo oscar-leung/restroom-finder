@@ -1,24 +1,40 @@
 {
-  "name": "Restroom Finder",
-  "short_name": "Restrooms",
-  "description": "Find public restrooms near you",
-  "start_url": "/",
+  "name": "Gotta Go — Closest bathroom",
+  "short_name": "Gotta Go",
+  "description": "Find the closest public bathroom, instantly. One tap to directions.",
+  "start_url": "/restroom-finder/",
+  "scope": "/restroom-finder/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#6366f1",
+  "background_color": "#0f0a1f",
+  "theme_color": "#8b5cf6",
+  "categories": ["navigation", "travel", "health", "lifestyle"],
   "icons": [
     {
-      "src": "/icon-192.svg",
+      "src": "/restroom-finder/icon-192.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/icon-512.svg",
+      "src": "/restroom-finder/icon-512.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/restroom-finder/icon-maskable.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Find closest bathroom",
+      "short_name": "GO",
+      "url": "/restroom-finder/?action=go",
+      "icons": [{ "src": "/restroom-finder/icon-192.svg", "sizes": "192x192" }]
     }
   ]
 }

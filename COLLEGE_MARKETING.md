@@ -57,7 +57,7 @@ should have" pieces constantly because they need filler content.
 >
 > Hi [editor],
 >
-> I built a free web app called Restroom Finder — it shows the closest
+> I built a free web app called Gotta Go — it shows the closest
 > bathroom on campus, one tap to directions. No signup. I used it 30+
 > times during my own finals and figured other students might find it
 > useful.

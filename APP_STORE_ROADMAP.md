@@ -48,7 +48,7 @@ const pos = await Geolocation.getCurrentPosition({
 ```
 
 This gives you:
-- Native iOS "Allow 'Restroom Finder' to use your location" prompt
+- Native iOS "Allow 'Gotta Go' to use your location" prompt
 - Better background accuracy
 - Access to `watchPosition` for live updates
 
@@ -57,7 +57,7 @@ This gives you:
 **iOS** — edit `ios/App/App/Info.plist`, add:
 ```xml
 <key>NSLocationWhenInUseUsageDescription</key>
-<string>Restroom Finder uses your location to find the closest restrooms.</string>
+<string>Gotta Go uses your location to find the closest restrooms.</string>
 ```
 
 **Android** — edit `android/app/src/main/AndroidManifest.xml`, add (inside
