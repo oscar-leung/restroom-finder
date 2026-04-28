@@ -116,6 +116,16 @@ export default function HeroCard({
         {restroom.fee === false && (
           <span className="badge badge-free">💰 Free</span>
         )}
+        {restroom.single_occupant === true && (
+          <span className="badge badge-private" title="Single-occupant locked room">
+            🔒 Private
+          </span>
+        )}
+        {restroom.family === true && (
+          <span className="badge badge-family" title="Family-friendly">
+            👨‍👩‍👧 Family
+          </span>
+        )}
         {(() => {
           const { isOpen, knownStatus } = isOpenNow(restroom.opening_hours);
           if (!knownStatus) return null;

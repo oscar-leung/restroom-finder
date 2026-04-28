@@ -5,6 +5,7 @@ import { fetchNearbyRestrooms } from "./services/restroomApi";
 import { distanceMeters } from "./utils/distance";
 import IntroScreen from "./components/IntroScreen";
 import HeroStack from "./components/HeroStack";
+import useOnline from "./hooks/useOnline";
 import AlternativesRow from "./components/AlternativesRow";
 import MapView from "./components/MapView";
 import RestroomPanel from "./components/RestroomPanel";
@@ -58,6 +59,7 @@ function App() {
     unisex: false,
     free: false,
     openNow: false,
+    singleOccupant: false,
   });
   // Achievement toast queue (shows one at a time)
   const [achievement, setAchievement] = useState(null);
@@ -65,6 +67,8 @@ function App() {
   const [introDone, setIntroDone] = useState(false);
   // Streak counter — Duolingo-style daily flame
   const [streak, setStreak] = useState(() => getStreak());
+  // Online/offline status
+  const isOnline = useOnline();
 
   // --- Usage patterns (privacy-first, localStorage-only) ---
   const { record: recordUsage, hint: usageHint, inTypicalWindow } =
@@ -110,6 +114,8 @@ function App() {
         const { isOpen, knownStatus } = isOpenNow(r.opening_hours);
         return knownStatus && isOpen;
       })
+      // Private (single-occupant) chip: only show entries we KNOW are private.
+      .filter((r) => !filters.singleOccupant || r.single_occupant === true)
       .sort((a, b) => a.distance - b.distance);
   }, [restrooms, userBathrooms, position, filters]);
 
@@ -291,6 +297,12 @@ function App() {
       {usingFallback && (
         <div className="fallback-banner">
           Showing San Francisco — enable location for your area
+        </div>
+      )}
+
+      {!isOnline && (
+        <div className="offline-banner">
+          📡 Offline — showing your last cached bathrooms
         </div>
       )}
 

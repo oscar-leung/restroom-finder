@@ -146,6 +146,12 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
           {restroom.fee === true && (
             <span className="badge badge-paid">Paid</span>
           )}
+          {restroom.single_occupant === true && (
+            <span className="badge badge-private">🔒 Private (single-occupant)</span>
+          )}
+          {restroom.family === true && (
+            <span className="badge badge-family">👨‍👩‍👧 Family-friendly</span>
+          )}
           {(() => {
             const { isOpen, knownStatus } = isOpenNow(restroom.opening_hours);
             if (!knownStatus) return null;

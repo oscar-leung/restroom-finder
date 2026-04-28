@@ -55,6 +55,16 @@ export default function FilterBar({ filters, onChange, onLocate }) {
         Open now
       </button>
 
+      <button
+        className={`chip ${filters.singleOccupant ? "chip-active" : ""}`}
+        onClick={() => toggle("singleOccupant")}
+        aria-pressed={!!filters.singleOccupant}
+        title="Locked single-person bathrooms only"
+      >
+        <span className="chip-icon" aria-hidden="true">🔒</span>
+        Private
+      </button>
+
       <button className="chip chip-locate" onClick={onLocate} title="Recenter on my location">
         <span className="chip-icon" aria-hidden="true">📍</span>
         Near me

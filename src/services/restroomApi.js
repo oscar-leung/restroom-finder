@@ -91,6 +91,24 @@ async function fetchFromOSM(lat, lng) {
       const t = el.tags || {};
       const yes = (v) => v === "yes" || v === "designated";
 
+      // Stall-type signals — Lulu's wedge per the competitor scan.
+      // "Single occupant" = a locked private bathroom (one person at a time)
+      // versus "multi-stall" = shared with multiple stalls.
+      // Heuristics: explicit `lockable=yes` OR "single user" / "one person"
+      // language, plus the absence of male/female segregation.
+      const lockable = yes(t.lockable);
+      const singleUserHint = /single|one[ -]?person|locked|private/i.test(
+        t.description || t.note || ""
+      );
+      const segregated =
+        yes(t.male) || yes(t.female) || yes(t.gender_segregated);
+      const single_occupant =
+        lockable || singleUserHint
+          ? true
+          : segregated
+          ? false
+          : null;
+
       return {
         id: `osm-${el.type}-${el.id}`,
         source: "osm",
@@ -103,6 +121,8 @@ async function fetchFromOSM(lat, lng) {
         longitude: coords.lng,
         accessible: yes(t.wheelchair),
         unisex: yes(t.unisex) || t["toilets:unisex"] === "yes",
+        single_occupant,
+        family: yes(t["toilets:family"]) || yes(t.family),
         // STRUCTURED — not buried in comment string anymore
         fee: t.fee === "yes" ? true : t.fee === "no" ? false : null,
         opening_hours: t.opening_hours || null,
@@ -170,10 +190,42 @@ function dedupe(list) {
   return Array.from(seen.values());
 }
 
+/* ----------------------- Offline cache ----------------------- */
+
+const CACHE_KEY = "gg_restroom_cache_v1";
+
+/** Round to ~1km grid so nearby fetches share a cache slot. */
+function cacheKey(lat, lng) {
+  return `${lat.toFixed(2)},${lng.toFixed(2)}`;
+}
+
+function readCache() {
+  try { return JSON.parse(localStorage.getItem(CACHE_KEY)) || {}; } catch { return {}; }
+}
+function writeCache(o) { try { localStorage.setItem(CACHE_KEY, JSON.stringify(o)); } catch {} }
+
+function cacheGet(lat, lng) {
+  return readCache()[cacheKey(lat, lng)] || null;
+}
+function cacheSet(lat, lng, data) {
+  const all = readCache();
+  all[cacheKey(lat, lng)] = { data, ts: Date.now() };
+  // Keep at most 10 grids cached (~10MB cap on a few thousand entries)
+  const keys = Object.keys(all);
+  if (keys.length > 10) {
+    const oldest = keys
+      .map((k) => ({ k, ts: all[k].ts }))
+      .sort((a, b) => a.ts - b.ts)[0];
+    delete all[oldest.k];
+  }
+  writeCache(all);
+}
+
 /**
  * Public API — fetch from every available source in parallel, merge,
- * dedupe. City sources are geofenced internally so they no-op outside
- * their region. If one source fails, the others still return results.
+ * dedupe. Falls back to localStorage cache if everything fails (offline).
+ *
+ * Returns: { results, fromCache: boolean, cachedAt: ISO | null }
  */
 export async function fetchNearbyRestrooms(lat, lng) {
   const results = await Promise.allSettled([
@@ -191,10 +243,18 @@ export async function fetchNearbyRestrooms(lat, lng) {
     }
   }
 
-  if (combined.length === 0) {
-    const firstError = results.find((r) => r.status === "rejected");
-    throw new Error(firstError?.reason?.message || "No data sources responded");
+  if (combined.length > 0) {
+    const merged = dedupe(combined);
+    cacheSet(lat, lng, merged);
+    return merged;
   }
 
-  return dedupe(combined);
+  // Everything failed — try the cache (offline mode)
+  const cached = cacheGet(lat, lng);
+  if (cached?.data?.length) {
+    return cached.data;
+  }
+
+  const firstError = results.find((r) => r.status === "rejected");
+  throw new Error(firstError?.reason?.message || "No data sources responded");
 }
