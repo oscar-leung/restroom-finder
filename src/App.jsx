@@ -3,6 +3,7 @@ import useGeolocation from "./hooks/useGeolocation";
 import useUsagePatterns from "./hooks/useUsagePatterns";
 import { fetchNearbyRestrooms } from "./services/restroomApi";
 import { distanceMeters } from "./utils/distance";
+import IntroScreen from "./components/IntroScreen";
 import HeroStack from "./components/HeroStack";
 import AlternativesRow from "./components/AlternativesRow";
 import MapView from "./components/MapView";
@@ -16,6 +17,7 @@ import { getUserBathrooms } from "./services/userBathrooms";
 import { recordVisit, getAllVisits } from "./services/visitTracker";
 import { getFavorites } from "./services/favorites";
 import { tryUnlock } from "./services/achievements";
+import { touchStreak, getStreak } from "./services/streak";
 import { isOpenNow } from "./utils/hours";
 import { trackEvent } from "./utils/analytics";
 import "./index.css";
@@ -59,6 +61,10 @@ function App() {
   });
   // Achievement toast queue (shows one at a time)
   const [achievement, setAchievement] = useState(null);
+  // Intro screen — shown on cold load
+  const [introDone, setIntroDone] = useState(false);
+  // Streak counter — Duolingo-style daily flame
+  const [streak, setStreak] = useState(() => getStreak());
 
   // --- Usage patterns (privacy-first, localStorage-only) ---
   const { record: recordUsage, hint: usageHint, inTypicalWindow } =
@@ -159,22 +165,24 @@ function App() {
     refreshLocation();
   };
 
-  // Combined GO handler: records pattern + per-bathroom visit count, fires GA4
-  // Also tries to unlock relevant achievements.
+  // Combined GO handler: records pattern + visit + streak; fires GA4 + achievements.
   const handleGo = (restroom) => {
     if (!restroom) return;
     recordUsage();
     const updated = recordVisit(restroom.id);
     setVisits(getAllVisits());
+    // Streak: advance the daily flame counter
+    const streakResult = touchStreak();
+    setStreak({ count: streakResult.count, longest: streakResult.longest, isToday: true });
     trackEvent("bathroom_visited", {
       id: String(restroom.id),
       visit_count: updated?.count || 1,
       distance_m: Math.round(restroom.distance || 0),
+      streak_count: streakResult.count,
     });
-    // Achievement: first GO ever
+    // Achievement chains
     const firstGo = tryUnlock("first_go");
     if (firstGo) setAchievement(firstGo);
-    // Achievement: visited the same bathroom 3 times
     if (updated?.count === 3) {
       const three = tryUnlock("three_visits");
       if (three) setAchievement(three);
@@ -245,6 +253,8 @@ function App() {
 
   return (
     <div className="app">
+      {!introDone && <IntroScreen onDone={() => setIntroDone(true)} />}
+
       {/* Aurora blobs — decorative, pointer-events: none */}
       <div className="aurora" aria-hidden="true"><span /></div>
 
@@ -256,14 +266,26 @@ function App() {
             <span className="app-tag" aria-hidden="true">closest bathroom, instantly</span>
           </h1>
         </div>
-        <button
-          className="header-refresh"
-          onClick={handleRefresh}
-          title="Refresh location"
-          aria-label="Refresh location"
-        >
-          ↻
-        </button>
+        <div className="header-right">
+          {streak.count > 0 && (
+            <div
+              className={`streak-flame ${streak.isToday ? "streak-active" : "streak-stale"}`}
+              title={`${streak.count}-day streak. Longest: ${streak.longest}`}
+              aria-label={`${streak.count}-day streak`}
+            >
+              <span className="streak-icon" aria-hidden="true">🔥</span>
+              <span className="streak-num">{streak.count}</span>
+            </div>
+          )}
+          <button
+            className="header-refresh"
+            onClick={handleRefresh}
+            title="Refresh location"
+            aria-label="Refresh location"
+          >
+            ↻
+          </button>
+        </div>
       </header>
 
       {usingFallback && (

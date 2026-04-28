@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { formatDistance } from "../utils/distance";
 import { formatLastVisit } from "../services/visitTracker";
 import { isOpenNow, formatHours } from "../utils/hours";
 import { isFavorite, toggleFavorite } from "../services/favorites";
 import { tryUnlock } from "../services/achievements";
+import { reportClean, getCleaningLog, formatRelative, getBountyStatus } from "../services/cleaningLog";
+import { uploadPhoto, getPhotos } from "../services/photos";
 import { trackEvent } from "../utils/analytics";
 import Reviews from "./Reviews";
 
@@ -19,8 +21,47 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
   const [favorited, setFavorited] = useState(() =>
     restroom ? isFavorite(restroom.id) : false
   );
+  const [cleaning, setCleaning] = useState(() =>
+    restroom ? getCleaningLog(restroom.id) : null
+  );
+  const [photos, setPhotos] = useState(() =>
+    restroom ? getPhotos(restroom.id) : []
+  );
+  const [uploadError, setUploadError] = useState(null);
+  const fileRef = useRef(null);
+
+  useEffect(() => {
+    if (restroom) {
+      setCleaning(getCleaningLog(restroom.id));
+      setPhotos(getPhotos(restroom.id));
+      setFavorited(isFavorite(restroom.id));
+    }
+  }, [restroom]);
 
   if (!restroom) return null;
+
+  const onClean = () => {
+    const updated = reportClean(restroom.id);
+    setCleaning(updated);
+    trackEvent("clean_reported", { id: String(restroom.id) });
+  };
+
+  const onPickFile = () => fileRef.current?.click();
+  const onFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploadError(null);
+    try {
+      await uploadPhoto(restroom.id, file);
+      setPhotos(getPhotos(restroom.id));
+      trackEvent("photo_uploaded", { id: String(restroom.id) });
+    } catch (err) {
+      setUploadError(err.message || "Couldn't upload that photo.");
+    }
+  };
+
+  const bounty = getBountyStatus(restroom.id);
 
   const onToggleFav = () => {
     const isNow = toggleFavorite(restroom.id);
@@ -137,6 +178,62 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
             <p>{restroom.comment}</p>
           </section>
         )}
+
+        {/* Photos section */}
+        <section className="modal-section">
+          <h3>Photos</h3>
+          {photos.length > 0 ? (
+            <div className="photo-grid">
+              {photos.map((p) => (
+                <a
+                  key={p.id}
+                  href={p.dataUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="photo-thumb"
+                >
+                  <img src={p.dataUrl} alt="" loading="lazy" />
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p className="muted">No photos yet — be the first.</p>
+          )}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={onFileChange}
+            hidden
+          />
+          <button className="btn-secondary" onClick={onPickFile}>
+            📷 Upload a photo
+          </button>
+          {uploadError && <p className="upload-error">{uploadError}</p>}
+        </section>
+
+        {/* Cleaning log + bounty */}
+        <section className="modal-section">
+          <h3>Cleanliness</h3>
+          {cleaning ? (
+            <p className="muted">
+              Last reported clean <strong>{formatRelative(cleaning.lastCleanedAt)}</strong>
+              {cleaning.count > 1 && ` · ${cleaning.count} reports total`}
+            </p>
+          ) : (
+            <p className="muted">No cleanliness reports yet.</p>
+          )}
+          {bounty.eligible && (
+            <div className="bounty-banner" title="Future feature — not yet payable">
+              💵 <strong>${bounty.value.toFixed(2)}</strong> bounty available · {bounty.reason}
+              <span className="bounty-soon">coming soon</span>
+            </div>
+          )}
+          <button className="btn-secondary" onClick={onClean}>
+            🧼 Report it's clean now
+          </button>
+        </section>
 
         <a
           className="cta-button"
