@@ -20,6 +20,8 @@ import { recordVisit, getAllVisits } from "./services/visitTracker";
 import { getFavorites } from "./services/favorites";
 import { tryUnlock } from "./services/achievements";
 import { touchStreak, getStreak } from "./services/streak";
+import { getTheme, applyTheme, toggleTheme } from "./services/theme";
+import { getPoints } from "./services/conditionReports";
 import { isOpenNow } from "./utils/hours";
 import { trackEvent } from "./utils/analytics";
 import "./index.css";
@@ -70,6 +72,20 @@ function App() {
   const [streak, setStreak] = useState(() => getStreak());
   // Online/offline status
   const isOnline = useOnline();
+  // Theme (default | cyber). Apply on mount.
+  const [theme, setTheme] = useState(() => getTheme());
+  useEffect(() => { applyTheme(theme); }, [theme]);
+  // Points (visible badge in header)
+  const [points, setPoints] = useState(() => getPoints());
+  // Refresh points when details modal closes (in case condition reports happened)
+  useEffect(() => {
+    if (!detailsOpen) setPoints(getPoints());
+  }, [detailsOpen]);
+  const onToggleTheme = () => {
+    const next = toggleTheme();
+    setTheme(next);
+    trackEvent("theme_toggled", { theme: next });
+  };
 
   // --- Usage patterns (privacy-first, localStorage-only) ---
   const { record: recordUsage, hint: usageHint, inTypicalWindow } =
@@ -273,6 +289,15 @@ function App() {
           </h1>
         </div>
         <div className="header-right">
+          {points.total > 0 && (
+            <div
+              className="points-badge"
+              title={`${points.total} contributor points · ${points.lifetime} lifetime`}
+            >
+              <span className="points-icon" aria-hidden="true">⚡</span>
+              <span className="points-num">{points.total}</span>
+            </div>
+          )}
           {streak.count > 0 && (
             <div
               className={`streak-flame ${streak.isToday ? "streak-active" : "streak-stale"}`}
@@ -283,6 +308,14 @@ function App() {
               <span className="streak-num">{streak.count}</span>
             </div>
           )}
+          <button
+            className="theme-toggle"
+            onClick={onToggleTheme}
+            title={theme === "cyber" ? "Back to default" : "2077 mode"}
+            aria-label="Toggle theme"
+          >
+            {theme === "cyber" ? "☀" : "◐"}
+          </button>
           <button
             className="header-refresh"
             onClick={handleRefresh}

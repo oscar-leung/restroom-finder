@@ -6,6 +6,7 @@ import { isFavorite, toggleFavorite } from "../services/favorites";
 import { tryUnlock } from "../services/achievements";
 import { reportClean, getCleaningLog, formatRelative, getBountyStatus } from "../services/cleaningLog";
 import { uploadPhoto, getPhotos } from "../services/photos";
+import { reportCondition, getBathroomState, REPORT_TYPES } from "../services/conditionReports";
 import { trackEvent } from "../utils/analytics";
 import Reviews from "./Reviews";
 
@@ -28,6 +29,10 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
     restroom ? getPhotos(restroom.id) : []
   );
   const [uploadError, setUploadError] = useState(null);
+  const [bathState, setBathState] = useState(() =>
+    restroom ? getBathroomState(restroom.id) : null
+  );
+  const [reportToast, setReportToast] = useState(null);
   const fileRef = useRef(null);
 
   useEffect(() => {
@@ -35,8 +40,23 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
       setCleaning(getCleaningLog(restroom.id));
       setPhotos(getPhotos(restroom.id));
       setFavorited(isFavorite(restroom.id));
+      setBathState(getBathroomState(restroom.id));
     }
   }, [restroom]);
+
+  const onReport = (type) => {
+    const result = reportCondition(restroom.id, type);
+    if (!result) return;
+    if (result.rateLimited) {
+      setReportToast("Already reported recently — try again in 30 min.");
+      setTimeout(() => setReportToast(null), 3000);
+      return;
+    }
+    setBathState(getBathroomState(restroom.id));
+    setReportToast(`+${result.awarded} pts · thanks for reporting`);
+    setTimeout(() => setReportToast(null), 3000);
+    trackEvent("condition_reported", { id: String(restroom.id), type, points: result.awarded });
+  };
 
   if (!restroom) return null;
 
@@ -217,6 +237,37 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
             📷 Upload a photo
           </button>
           {uploadError && <p className="upload-error">{uploadError}</p>}
+        </section>
+
+        {/* Condition report — GasBuddy-style one-tap status reporting */}
+        <section className="modal-section">
+          <h3>Report condition (earn points)</h3>
+          <div className="condition-grid">
+            {Object.entries(REPORT_TYPES).map(([type, meta]) => (
+              <button
+                key={type}
+                className="condition-btn"
+                onClick={() => onReport(type)}
+                title={`+${meta.points} pts`}
+              >
+                <span className="condition-icon" aria-hidden="true">{meta.icon}</span>
+                <span className="condition-label">{meta.label}</span>
+                <span className="condition-pts">+{meta.points}</span>
+              </button>
+            ))}
+          </div>
+          {bathState && bathState.length > 0 && (
+            <div className="condition-current">
+              <span className="muted">Latest reports:</span>
+              {bathState.map((r) => (
+                <span key={r.type} className="condition-pill">
+                  {REPORT_TYPES[r.type].icon} {REPORT_TYPES[r.type].label}
+                  <span className="condition-when">{formatRelative(r.ts)}</span>
+                </span>
+              ))}
+            </div>
+          )}
+          {reportToast && <div className="condition-toast">{reportToast}</div>}
         </section>
 
         {/* Cleaning log + bounty */}
