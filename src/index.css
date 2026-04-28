@@ -1894,3 +1894,128 @@ body {
   font-weight: 600;
   letter-spacing: 0.2px;
 }
+
+/* ============================================================
+   Loading game (toilet dino-style)
+   ============================================================ */
+.status-screen-game {
+  background: linear-gradient(180deg, #fef3f2, #fce7f3);
+  padding: 0;
+}
+.loading-game-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 24px;
+  max-width: 400px;
+}
+.loading-game-message {
+  font-size: 16px;
+  font-weight: 600;
+  color: #7c3aed;
+  letter-spacing: -0.2px;
+  text-align: center;
+}
+.loading-game-canvas {
+  background: white;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 320px;
+  cursor: pointer;
+  touch-action: manipulation;
+  display: block;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
+}
+.loading-game-meta {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 320px;
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+.loading-game-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.loading-game-score strong {
+  font-size: 14px;
+  color: #7c3aed;
+  letter-spacing: 0;
+}
+.loading-game-best {
+  font-size: 10px;
+  color: #cbd5e1;
+}
+
+/* ============================================================
+   Mini-map thumbnails on alt cards
+   ============================================================ */
+.mini-map {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--bg-muted);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+.mini-map img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.mini-map-pin {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  background: #ec4899;
+  border: 2px solid white;
+  transform: translate(-50%, -100%);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  pointer-events: none;
+}
+
+/* Alt card layout adjustments for the mini-map */
+.alt-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+/* Inferred (common-places) cards — softer treatment */
+.alt-card-inferred {
+  background: rgba(254, 243, 199, 0.65) !important;
+  border-color: #fde68a !important;
+  border-style: dashed !important;
+}
+.alt-inferred-note {
+  font-size: 10px;
+  color: #92400e;
+  margin-top: 2px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* "free" pill in the alt-icons row */
+.alt-free {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #065f46;
+  background: #d1fae5;
+  padding: 1px 6px;
+  border-radius: 999px;
+}

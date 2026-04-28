@@ -1,6 +1,7 @@
 import { formatDistance } from "../utils/distance";
 import { getStats } from "../services/reviews";
 import { isOpenNow } from "../utils/hours";
+import MiniMap from "./MiniMap";
 
 /**
  * AlternativesRow — horizontal scroll of other nearby restrooms.
@@ -22,20 +23,27 @@ export default function AlternativesRow({ restrooms, onPromote }) {
         {alternatives.map((r) => {
           const stats = getStats(r.id);
           const { isOpen, knownStatus } = isOpenNow(r.opening_hours);
+          const address = [r.street, r.city].filter(Boolean).join(", ");
           return (
             <button
               key={r.id}
-              className="alt-card"
+              className={`alt-card ${r.inferred ? "alt-card-inferred" : ""}`}
               onClick={() => onPromote(r)}
               title="Make this the selected restroom"
             >
-              <div className="alt-distance">{formatDistance(r.distance)}</div>
+              <div className="alt-card-top">
+                <MiniMap lat={r.latitude} lng={r.longitude} size={48} />
+                <div className="alt-distance">{formatDistance(r.distance)}</div>
+              </div>
               <div className="alt-name">{r.name || "Unnamed"}</div>
-              <div className="alt-street">{r.street || ""}</div>
+              <div className="alt-street">{address || ""}</div>
+              {r.inferred && (
+                <div className="alt-inferred-note">Customer bathroom</div>
+              )}
               <div className="alt-icons">
                 {r.accessible && <span title="Accessible">♿</span>}
                 {r.unisex && <span title="Gender neutral">⚧</span>}
-                {r.fee === false && <span title="Free">💰</span>}
+                {r.fee === false && <span className="alt-free" title="Free">free</span>}
                 {knownStatus && (
                   <span title={isOpen ? "Open now" : "Closed now"}>
                     {isOpen ? "🟢" : "🔴"}

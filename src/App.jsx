@@ -4,6 +4,7 @@ import useUsagePatterns from "./hooks/useUsagePatterns";
 import { fetchNearbyRestrooms } from "./services/restroomApi";
 import { distanceMeters } from "./utils/distance";
 import IntroScreen from "./components/IntroScreen";
+import LoadingGame from "./components/LoadingGame";
 import HeroStack from "./components/HeroStack";
 import useOnline from "./hooks/useOnline";
 import AlternativesRow from "./components/AlternativesRow";
@@ -236,9 +237,8 @@ function App() {
 
   if (apiLoading && sorted.length === 0) {
     return (
-      <div className="status-screen">
-        <div className="spinner" />
-        <p>Finding restrooms near you…</p>
+      <div className="status-screen status-screen-game">
+        <LoadingGame message="Finding bathrooms near you…" />
       </div>
     );
   }

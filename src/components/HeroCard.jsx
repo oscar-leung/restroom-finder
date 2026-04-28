@@ -114,7 +114,7 @@ export default function HeroCard({
           <span className="badge badge-unisex">⚧ Gender Neutral</span>
         )}
         {restroom.fee === false && (
-          <span className="badge badge-free">💰 Free</span>
+          <span className="badge badge-free">Free</span>
         )}
         {restroom.single_occupant === true && (
           <span className="badge badge-private" title="Single-occupant locked room">

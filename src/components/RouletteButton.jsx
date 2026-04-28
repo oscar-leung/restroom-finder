@@ -52,7 +52,7 @@ export default function RouletteButton({ candidates, onPick }) {
     >
       <span className="roulette-die" aria-hidden="true">🎲</span>
       <span className="roulette-label">
-        {spinning ? "Rolling…" : "Roulette: surprise me"}
+        {spinning ? "Picking…" : "Try somewhere new"}
       </span>
     </button>
   );

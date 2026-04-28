@@ -141,7 +141,7 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
             <span className="badge badge-unisex">⚧ Gender Neutral</span>
           )}
           {restroom.fee === false && (
-            <span className="badge badge-free">💰 Free</span>
+            <span className="badge badge-free">Free</span>
           )}
           {restroom.fee === true && (
             <span className="badge badge-paid">Paid</span>

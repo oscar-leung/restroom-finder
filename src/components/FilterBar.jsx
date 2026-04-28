@@ -41,7 +41,7 @@ export default function FilterBar({ filters, onChange, onLocate }) {
         aria-pressed={!!filters.free}
         title="Hide bathrooms that charge a fee"
       >
-        <span className="chip-icon" aria-hidden="true">💰</span>
+        <span className="chip-icon" aria-hidden="true">✓</span>
         Free
       </button>
 

@@ -104,3 +104,97 @@ These set us apart. Polish, don't rebuild.
 6. Backend (Cloudflare Workers) — unlocks #17, #18, #2
 
 Estimated to ship #1–#5: a focused weekend.
+
+---
+
+## P0/P1 additions from user feedback (April 2026)
+
+These are major directional asks captured here so they don't get lost.
+
+### Account system (currently guest-by-default)
+- Stay logged in as guest forever. Account creation optional.
+- Account unlocks: cross-device sync (favorites, reviews, streak,
+  achievements, photos, contributions)
+- Auth: passwordless email link first; OAuth (Google/Apple) phase 2
+- Backend required (Cloudflare Workers + D1 + KV is enough for MVP)
+- Effort: **L** — at least a week of focused backend work
+
+### Notifications (PWA + native push)
+- "Bathroom near you was just reported clean"
+- "A bathroom you contributed got 5 reviews"
+- "There's a $1 bounty 200m from your route"
+- iOS PWA push works in Safari 16.4+; Android always has
+- Requires VAPID keys + backend + push permission flow
+- Effort: **M-L** — a couple of focused days once backend exists
+
+### Passive geo data collection
+**Caveat first:** background geolocation is a battery / privacy
+landmine. We will NOT do it without explicit opt-in, clear copy
+about what's collected, and the ability to turn off in one tap.
+- When the user opts in, sample location every 5 min while the app
+  is in foreground (background = native-only, even bigger ask)
+- Tag it as "user route data" — used to surface bathrooms along the
+  user's typical paths, not to track them
+- Aggregate-only sharing — never expose an individual's path to
+  another user
+- Apple App Review will scrutinize this hard. Worth it for the
+  retention loop, but be ready to defend the privacy story.
+
+### B2B owner mode
+- Schools, hotels, casinos, malls, transit authorities, janitorial
+  services
+- Owner role: claim a bathroom, see issues reported, assign a
+  cleaner, mark as cleaned
+- Web dashboard (separate URL): /admin or app.gottago.app
+- Pricing: $200–$2000/mo per facility (see BUSINESS_MODEL.md)
+- Effort: **L+** — a real product on its own. Defer until consumer
+  side has 50k+ MAU.
+
+### Fixture data (counts of toilets, urinals, sinks, etc.)
+- We now extract from OSM tags when present (Apr 2026)
+- Most entries don't have these — capture from user uploads
+- "Quick edit" form on each bathroom: add stall count, sink yes/no,
+  paper towels yes/no, etc.
+- Use these for richer filters: "≥ 3 stalls", "has changing table"
+- Effort: **S** — UI exists; just need the form. Mostly waiting on
+  user contributions to populate.
+
+### Engagement loop (going to bathroom = reward)
+- Streak counter ✓ shipped (Duolingo-style)
+- Achievement system ✓ shipped (9 unlockables)
+- Add: passive earning per verified data submission. Tier:
+  - First contribution: ribbon, no money
+  - 10th: $1 in store credit (offset against future Plus subscription)
+  - 100th: $25 cash via Stripe
+  - 1000th: lifetime Plus + featured contributor badge
+- Effort: **M** — needs backend + Stripe Connect
+
+### "Common places" inferred bathrooms ✓ shipped
+- McDonald's / Starbucks / Costco / major gas stations show up as
+  "Customer bathroom — buy something first"
+- Inferred sources have lighter visual treatment (dashed amber
+  border, lower priority in dedupe)
+- Brand allow-list curated to avoid false positives
+
+### Loading-screen mini-game ✓ shipped
+- Toilet dino game during data fetch
+- Persists best score in localStorage
+
+### Mini-map preview on cards ✓ shipped
+- 48px static OSM tile per alt card
+
+### Distance unit auto-detect ✓ shipped
+- US/Liberia/Myanmar → ft/mi; everyone else → m/km
+- Override via `localStorage.gg_distance_unit = 'imperial'|'metric'`
+
+### Address visibility ✓ shipped (alt cards now show street + city)
+
+### Things explicitly NOT being built right now
+- 10M downloads target — possible but requires sustained native-app
+  growth (Capacitor → App Store → ranking → reviews → repeat). Year-2+
+  scope.
+- "Show ads everywhere" — ads only on details modal + below alt
+  cards. Never on the GO button or hero. AdSense approval pending
+  on Oscar's account setup.
+- Real-money payouts — gated on Stripe Connect + backend + KYC
+

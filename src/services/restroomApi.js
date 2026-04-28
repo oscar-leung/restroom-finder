@@ -1,6 +1,7 @@
 import { fetchNYC } from "./dataSources/nyc";
 import { fetchSF } from "./dataSources/sf";
 import { fetchGooglePlaces } from "./dataSources/googlePlaces";
+import { fetchCommonPlaces } from "./dataSources/commonPlaces";
 
 /**
  * Restroom data layer — aggregates 4+ sources and dedupes:
@@ -109,6 +110,14 @@ async function fetchFromOSM(lat, lng) {
           ? false
           : null;
 
+      // Fixture counts (rare in OSM but worth extracting when present)
+      const numToilets = Number(t["capacity"]) || Number(t["toilets:capacity"]) || null;
+      const numUrinals = Number(t["male:urinals"]) || Number(t["toilets:urinals"]) || null;
+      const numStalls = Number(t["female:capacity"]) || null;
+      const hasSink = yes(t["toilets:hand_washing"]) || yes(t["sink"]);
+      const hasPaperTowels = yes(t["toilets:paper_towels"]);
+      const hasBabyChange = yes(t.changing_table) || yes(t["diaper:changing_table"]);
+
       return {
         id: `osm-${el.type}-${el.id}`,
         source: "osm",
@@ -123,7 +132,14 @@ async function fetchFromOSM(lat, lng) {
         unisex: yes(t.unisex) || t["toilets:unisex"] === "yes",
         single_occupant,
         family: yes(t["toilets:family"]) || yes(t.family),
-        // STRUCTURED — not buried in comment string anymore
+        baby_change: hasBabyChange,
+        fixtures: {
+          toilets: numToilets,
+          urinals: numUrinals,
+          stalls: numStalls,
+          sink: hasSink,
+          paper_towels: hasPaperTowels,
+        },
         fee: t.fee === "yes" ? true : t.fee === "no" ? false : null,
         opening_hours: t.opening_hours || null,
         directions: t.description || null,
@@ -166,7 +182,9 @@ function bestName(t) {
  * the same location, prefer city open-data (most authoritative) > Refuge
  * (rich community metadata) > OSM (broadest coverage).
  */
-const SOURCE_PRIORITY = { user: 5, google: 5, nyc: 4, sf: 4, refuge: 3, osm: 2 };
+// Inferred (common-places) sit BELOW everything explicit since they're
+// "probably has a bathroom" not "this is a public toilet".
+const SOURCE_PRIORITY = { user: 5, google: 5, nyc: 4, sf: 4, refuge: 3, osm: 2, inferred: 1 };
 
 function dedupe(list) {
   const seen = new Map();
@@ -234,12 +252,23 @@ export async function fetchNearbyRestrooms(lat, lng) {
     fetchNYC(lat, lng),
     fetchSF(lat, lng),
     fetchGooglePlaces(lat, lng), // no-op without VITE_GOOGLE_MAPS_KEY
+    fetchCommonPlaces(lat, lng), // McDonald's / Starbucks / gas / big-box
   ]);
 
   const combined = [];
   for (const r of results) {
     if (r.status === "fulfilled" && Array.isArray(r.value)) {
-      combined.push(...r.value);
+      // Defensive: drop any entry without valid coords. A single bad
+      // entry shouldn't break the whole render.
+      for (const item of r.value) {
+        if (
+          item &&
+          typeof item.latitude === "number" && !Number.isNaN(item.latitude) &&
+          typeof item.longitude === "number" && !Number.isNaN(item.longitude)
+        ) {
+          combined.push(item);
+        }
+      }
     }
   }
 
