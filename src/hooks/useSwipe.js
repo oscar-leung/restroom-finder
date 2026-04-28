@@ -61,8 +61,13 @@ export default function useSwipe({
   const onPointerUp = (e) => {
     if (pointerId.current !== e.pointerId) return;
     const dx = offsetX;
-    if (dx <= -threshold) onSwipeLeft?.();
-    else if (dx >= threshold) onSwipeRight?.();
+    if (dx <= -threshold) {
+      if (navigator.vibrate) navigator.vibrate(20);
+      onSwipeLeft?.();
+    } else if (dx >= threshold) {
+      if (navigator.vibrate) navigator.vibrate(20);
+      onSwipeRight?.();
+    }
     reset();
   };
 

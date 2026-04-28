@@ -1,6 +1,10 @@
+import { useState } from "react";
 import { formatDistance } from "../utils/distance";
 import { formatLastVisit } from "../services/visitTracker";
 import { isOpenNow, formatHours } from "../utils/hours";
+import { isFavorite, toggleFavorite } from "../services/favorites";
+import { tryUnlock } from "../services/achievements";
+import { trackEvent } from "../utils/analytics";
 import Reviews from "./Reviews";
 
 /**
@@ -11,8 +15,26 @@ import Reviews from "./Reviews";
  *   restroom  – restroom object (or null)
  *   onClose   – close callback
  */
-export default function RestroomPanel({ restroom, visitRecord, onClose }) {
+export default function RestroomPanel({ restroom, visitRecord, onClose, onAchievement }) {
+  const [favorited, setFavorited] = useState(() =>
+    restroom ? isFavorite(restroom.id) : false
+  );
+
   if (!restroom) return null;
+
+  const onToggleFav = () => {
+    const isNow = toggleFavorite(restroom.id);
+    setFavorited(isNow);
+    trackEvent("favorite_toggled", { id: String(restroom.id), on: isNow });
+    if (isNow) {
+      const ach = tryUnlock("first_favorite");
+      if (ach && onAchievement) onAchievement(ach);
+    }
+  };
+
+  // Street View deep-link — works without an API key, opens
+  // Google Maps' panorama view of the location.
+  const streetViewUrl = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${restroom.latitude},${restroom.longitude}`;
 
   const address = [restroom.street, restroom.city, restroom.state]
     .filter(Boolean)
@@ -35,6 +57,16 @@ export default function RestroomPanel({ restroom, visitRecord, onClose }) {
 
         <button className="modal-close" onClick={onClose} aria-label="Close">
           ×
+        </button>
+
+        <button
+          className={`modal-fav ${favorited ? "modal-fav-on" : ""}`}
+          onClick={onToggleFav}
+          aria-pressed={favorited}
+          aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
+          title={favorited ? "Pinned to your speed dial" : "Pin to your speed dial"}
+        >
+          {favorited ? "★" : "☆"}
         </button>
 
         <h2 className="modal-title">{restroom.name || "Unnamed Restroom"}</h2>
@@ -111,8 +143,19 @@ export default function RestroomPanel({ restroom, visitRecord, onClose }) {
           href={mapsUrl}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => trackEvent("directions_opened", { id: String(restroom.id) })}
         >
           Get Directions →
+        </a>
+
+        <a
+          className="secondary-link"
+          href={streetViewUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => trackEvent("street_view_opened", { id: String(restroom.id) })}
+        >
+          🛣️ See on Street View
         </a>
 
         <Reviews restroomId={restroom.id} />

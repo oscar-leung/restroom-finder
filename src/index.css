@@ -1349,3 +1349,299 @@ body {
 .filter-bar .chip-locate {
   margin-left: 8px; /* override the prior margin-left: auto that caused wrap */
 }
+
+/* ============================================================
+   POLISH PASS — fix chip + badge spacing, add breathing room
+   ============================================================ */
+
+/* Filter chips: real spacing between emoji + label.
+   The previous CSS had gap:6px on the chip but the icon span
+   was rendering immediately adjacent to the text. Fixed by
+   giving the icon a fixed width + setting margin-right. */
+.filter-bar {
+  padding: 12px 16px;
+  gap: 10px;
+}
+.chip {
+  padding: 8px 16px;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  line-height: 1;
+  letter-spacing: 0.1px;
+}
+.chip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+  margin-right: 2px;
+  /* Fix emoji baseline drift */
+  transform: translateY(-1px);
+}
+
+/* Hero badges row — give them real breathing space */
+.hero-badges {
+  gap: 8px;
+  margin-top: 4px;
+  margin-bottom: 18px;
+  row-gap: 6px;
+}
+.badge {
+  padding: 6px 12px;
+  font-size: 11.5px;
+  letter-spacing: 0.2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  line-height: 1;
+}
+
+/* Alt card: fix icon row crowding */
+.alt-icons {
+  gap: 6px;
+  font-size: 13px;
+  margin-top: 6px;
+  align-items: center;
+}
+.alt-rating {
+  margin-left: auto;
+}
+
+/* Modal badges row */
+.modal-badges {
+  gap: 8px;
+  row-gap: 6px;
+}
+
+/* Restore the "Near me" chip styling (it's special) */
+.filter-bar .chip-locate {
+  margin-left: 8px;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  color: white;
+  font-weight: 600;
+  border: none;
+}
+.filter-bar .chip-locate .chip-icon {
+  color: white;
+}
+
+/* ============================================================
+   Hero peek stack — visible "deck of cards" effect
+   ============================================================ */
+.hero-stack {
+  position: relative;
+}
+.hero-peek {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(140deg, #6366f1 0%, #8b5cf6 100%);
+  border-radius: 24px;
+  pointer-events: none;
+  box-shadow: var(--shadow-md);
+  padding: 18px 22px;
+  color: rgba(255,255,255,0.7);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: -0.2px;
+}
+.hero-peek-1 {
+  height: 56px;
+  transform: translateY(8px) scale(0.96);
+  z-index: 1;
+  opacity: 0.85;
+}
+.hero-peek-2 {
+  height: 44px;
+  transform: translateY(16px) scale(0.92);
+  z-index: 0;
+  opacity: 0.55;
+}
+.hero-peek-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hero-stack > .hero {
+  position: relative;
+  z-index: 2;
+}
+
+/* ============================================================
+   Toilet Roulette button
+   ============================================================ */
+.roulette-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 700;
+  color: #78350f;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+}
+.roulette-btn:active {
+  transform: scale(0.98);
+}
+.roulette-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.roulette-die {
+  font-size: 22px;
+  display: inline-block;
+  transition: transform 0.4s ease;
+}
+.roulette-spinning .roulette-die {
+  animation: roulette-spin 0.4s linear infinite;
+}
+@keyframes roulette-spin {
+  0%   { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.3); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+/* ============================================================
+   Achievement toast — slides up from the bottom
+   ============================================================ */
+.achievement-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(20px + var(--safe-bottom));
+  transform: translateX(-50%);
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 280px;
+  max-width: 90vw;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #1e1b4b, #4c1d95);
+  color: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(76, 29, 149, 0.5);
+  animation: ach-pop 0.4s cubic-bezier(0.2, 1.3, 0.4, 1);
+  cursor: pointer;
+}
+@keyframes ach-pop {
+  0%   { opacity: 0; transform: translate(-50%, 40px) scale(0.9); }
+  100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+.achievement-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+.achievement-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+.achievement-desc {
+  font-size: 12px;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
+/* ============================================================
+   Modal favorite star
+   ============================================================ */
+.modal-fav {
+  position: absolute;
+  top: 14px;
+  right: 56px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-muted);
+  font-size: 22px;
+  line-height: 1;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, color 0.15s;
+}
+.modal-fav-on {
+  color: #f59e0b;
+  background: #fef3c7;
+}
+.modal-fav:active { transform: scale(1.15); }
+
+/* ============================================================
+   Secondary link (Street View etc.)
+   ============================================================ */
+.secondary-link {
+  display: block;
+  text-align: center;
+  margin-top: 10px;
+  padding: 10px;
+  color: var(--primary-dark);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.secondary-link:active { opacity: 0.7; }
+
+/* ============================================================
+   Hero peek-stack — REVISED to ledge-out below the hero
+   The previous version positioned peeks at top:0 (hidden behind
+   the hero). This version sticks them out the bottom like a
+   physical deck of cards.
+   ============================================================ */
+.hero-stack {
+  padding-bottom: 18px; /* room for the peek ledges */
+}
+.hero-peek {
+  position: absolute;
+  background: linear-gradient(140deg, #6366f1 0%, #8b5cf6 100%);
+  border-radius: 0 0 22px 22px;
+  pointer-events: none;
+  color: rgba(255,255,255,0.85);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 22px;
+  height: 22px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.hero-peek-1 {
+  left: 8px; right: 8px; bottom: 6px;
+  z-index: 1;
+  opacity: 0.85;
+  box-shadow: 0 6px 14px rgba(99,102,241,0.25);
+  top: auto;          /* override the previous top:0 rule */
+  transform: none;    /* override previous transforms */
+  height: 18px;
+}
+.hero-peek-2 {
+  left: 16px; right: 16px; bottom: 0;
+  z-index: 0;
+  opacity: 0.55;
+  box-shadow: 0 4px 10px rgba(99,102,241,0.18);
+  top: auto;
+  transform: none;
+  height: 14px;
+}
+.hero-peek-name {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  width: 100%;
+  text-align: center;
+}

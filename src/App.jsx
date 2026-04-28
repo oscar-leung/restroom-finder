@@ -3,15 +3,19 @@ import useGeolocation from "./hooks/useGeolocation";
 import useUsagePatterns from "./hooks/useUsagePatterns";
 import { fetchNearbyRestrooms } from "./services/restroomApi";
 import { distanceMeters } from "./utils/distance";
-import HeroCard from "./components/HeroCard";
+import HeroStack from "./components/HeroStack";
 import AlternativesRow from "./components/AlternativesRow";
 import MapView from "./components/MapView";
 import RestroomPanel from "./components/RestroomPanel";
 import AddBathroomModal from "./components/AddBathroomModal";
 import RecentlyAdded from "./components/RecentlyAdded";
 import FilterBar from "./components/FilterBar";
+import RouletteButton from "./components/RouletteButton";
+import AchievementToast from "./components/AchievementToast";
 import { getUserBathrooms } from "./services/userBathrooms";
 import { recordVisit, getAllVisits } from "./services/visitTracker";
+import { getFavorites } from "./services/favorites";
+import { tryUnlock } from "./services/achievements";
 import { isOpenNow } from "./utils/hours";
 import { trackEvent } from "./utils/analytics";
 import "./index.css";
@@ -53,6 +57,8 @@ function App() {
     free: false,
     openNow: false,
   });
+  // Achievement toast queue (shows one at a time)
+  const [achievement, setAchievement] = useState(null);
 
   // --- Usage patterns (privacy-first, localStorage-only) ---
   const { record: recordUsage, hint: usageHint, inTypicalWindow } =
@@ -125,9 +131,28 @@ function App() {
 
   // Swipe → next / previous. Clamp at edges (no wrapping — 1st restroom
   // swipe-right does nothing; feels correct for "closest" anchor).
-  const handleNext = () =>
-    setHeroIndex((i) => Math.min(i + 1, sorted.length - 1));
+  const handleNext = () => {
+    setHeroIndex((i) => {
+      if (i === 0) {
+        const ach = tryUnlock("first_swipe");
+        if (ach) setAchievement(ach);
+      }
+      return Math.min(i + 1, sorted.length - 1);
+    });
+  };
   const handlePrev = () => setHeroIndex((i) => Math.max(i - 1, 0));
+
+  // Roulette: pick a random nearby bathroom (not the closest). Shows
+  // it in the hero, fires achievement on first roll.
+  const handleRoulette = (winner) => {
+    const idx = sorted.findIndex((s) => s.id === winner.id);
+    if (idx >= 0) {
+      setHeroIndex(idx);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    const ach = tryUnlock("first_roulette");
+    if (ach) setAchievement(ach);
+  };
 
   const handleRefresh = () => {
     setHeroIndex(0);
@@ -135,6 +160,7 @@ function App() {
   };
 
   // Combined GO handler: records pattern + per-bathroom visit count, fires GA4
+  // Also tries to unlock relevant achievements.
   const handleGo = (restroom) => {
     if (!restroom) return;
     recordUsage();
@@ -145,6 +171,14 @@ function App() {
       visit_count: updated?.count || 1,
       distance_m: Math.round(restroom.distance || 0),
     });
+    // Achievement: first GO ever
+    const firstGo = tryUnlock("first_go");
+    if (firstGo) setAchievement(firstGo);
+    // Achievement: visited the same bathroom 3 times
+    if (updated?.count === 3) {
+      const three = tryUnlock("three_visits");
+      if (three) setAchievement(three);
+    }
   };
 
   // Bucket counts for the header summary ("X within 500m")
@@ -272,7 +306,9 @@ function App() {
           )}
         </div>
 
-        <HeroCard
+        <HeroStack
+          sorted={sorted}
+          heroIndex={safeIndex}
           restroom={hero}
           index={safeIndex}
           total={sorted.length}
@@ -282,6 +318,10 @@ function App() {
           onNext={handleNext}
           onPrev={handlePrev}
         />
+
+        {sorted.length >= 3 && (
+          <RouletteButton candidates={sorted} onPick={handleRoulette} />
+        )}
 
         <AlternativesRow
           restrooms={orderedForAlts}
@@ -366,6 +406,12 @@ function App() {
         restroom={detailsOpen}
         visitRecord={detailsOpen ? visits[detailsOpen.id] : null}
         onClose={() => setDetailsOpen(null)}
+        onAchievement={(a) => setAchievement(a)}
+      />
+
+      <AchievementToast
+        achievement={achievement}
+        onDismiss={() => setAchievement(null)}
       />
 
       {addOpen && (
@@ -373,9 +419,16 @@ function App() {
           position={geoPosition}
           onClose={() => setAddOpen(false)}
           onAdded={(entry) => {
-            setUserBathrooms(getUserBathrooms());
-            // Promote it to the hero so the user immediately sees their addition
+            const updated = getUserBathrooms();
+            setUserBathrooms(updated);
             setHeroIndex(0);
+            // Achievement unlocks
+            const first = tryUnlock("first_add");
+            if (first) setAchievement(first);
+            else if (updated.length >= 5) {
+              const five = tryUnlock("five_added");
+              if (five) setAchievement(five);
+            }
           }}
         />
       )}

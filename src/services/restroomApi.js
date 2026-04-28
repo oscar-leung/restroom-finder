@@ -1,5 +1,6 @@
 import { fetchNYC } from "./dataSources/nyc";
 import { fetchSF } from "./dataSources/sf";
+import { fetchGooglePlaces } from "./dataSources/googlePlaces";
 
 /**
  * Restroom data layer — aggregates 4+ sources and dedupes:
@@ -145,7 +146,7 @@ function bestName(t) {
  * the same location, prefer city open-data (most authoritative) > Refuge
  * (rich community metadata) > OSM (broadest coverage).
  */
-const SOURCE_PRIORITY = { nyc: 4, sf: 4, refuge: 3, osm: 2, user: 5 };
+const SOURCE_PRIORITY = { user: 5, google: 5, nyc: 4, sf: 4, refuge: 3, osm: 2 };
 
 function dedupe(list) {
   const seen = new Map();
@@ -180,6 +181,7 @@ export async function fetchNearbyRestrooms(lat, lng) {
     fetchFromOSM(lat, lng),
     fetchNYC(lat, lng),
     fetchSF(lat, lng),
+    fetchGooglePlaces(lat, lng), // no-op without VITE_GOOGLE_MAPS_KEY
   ]);
 
   const combined = [];
