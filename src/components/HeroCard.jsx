@@ -3,6 +3,7 @@ import { formatDistance } from "../utils/distance";
 import { trackEvent } from "../utils/analytics";
 import { getFlag } from "../utils/featureFlags";
 import { getStats } from "../services/reviews";
+import { walkingMinutes } from "../services/comfort";
 import { isOpenNow } from "../utils/hours";
 import useSwipe from "../hooks/useSwipe";
 
@@ -65,7 +66,8 @@ export default function HeroCard({
 
   if (!restroom) return null;
 
-  const walkMins = Math.max(1, Math.round(restroom.distance / 80));
+  // Walking time respects comfort mode (slower pace for elders / accessibility)
+  const walkMins = walkingMinutes(restroom.distance);
   const address = [restroom.street, restroom.city].filter(Boolean).join(", ");
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${restroom.latitude},${restroom.longitude}&travelmode=walking`;
 

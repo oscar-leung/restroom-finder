@@ -22,6 +22,7 @@ import { getFavorites } from "./services/favorites";
 import { tryUnlock } from "./services/achievements";
 import { touchStreak, getStreak } from "./services/streak";
 import { getTheme, applyTheme, toggleTheme } from "./services/theme";
+import { getComfort, setComfort, toggleComfort } from "./services/comfort";
 import { getPoints } from "./services/conditionReports";
 import { isOpenNow } from "./utils/hours";
 import { trackEvent } from "./utils/analytics";
@@ -73,9 +74,17 @@ function App() {
   const [streak, setStreak] = useState(() => getStreak());
   // Online/offline status
   const isOnline = useOnline();
-  // Theme (default | cyber). Apply on mount.
+  // Theme (default | midnight). Apply on mount.
   const [theme, setTheme] = useState(() => getTheme());
   useEffect(() => { applyTheme(theme); }, [theme]);
+  // Comfort mode — bigger text, slower walking pace, less visual noise
+  const [comfort, setComfortState] = useState(() => getComfort());
+  useEffect(() => { setComfort(comfort); }, [comfort]);
+  const onToggleComfort = () => {
+    const next = toggleComfort();
+    setComfortState(next);
+    trackEvent("comfort_toggled", { on: next });
+  };
   // Points (visible badge in header)
   const [points, setPoints] = useState(() => getPoints());
   // Refresh points when details modal closes (in case condition reports happened)
@@ -309,6 +318,15 @@ function App() {
               <span className="streak-num">{streak.count}</span>
             </div>
           )}
+          <button
+            className={`theme-toggle ${comfort ? "comfort-on" : ""}`}
+            onClick={onToggleComfort}
+            title={comfort ? "Comfort mode on (tap to turn off)" : "Comfort mode: bigger text, slower pace"}
+            aria-label="Toggle comfort mode"
+            aria-pressed={comfort}
+          >
+            <span style={{ fontSize: "13px", fontWeight: 700 }}>{comfort ? "A−" : "A+"}</span>
+          </button>
           <button
             className="theme-toggle"
             onClick={onToggleTheme}

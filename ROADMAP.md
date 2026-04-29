@@ -198,3 +198,58 @@ about what's collected, and the ability to turn off in one tap.
   on Oscar's account setup.
 - Real-money payouts — gated on Stripe Connect + backend + KYC
 
+
+---
+
+## Elder + accessibility-focused additions (April 2026)
+
+A user request specifically asked for elder support. Comfort Mode
+(toggle in the header — "A+" button) is the foundation. Here's what
+to build on top of it.
+
+### ✓ Comfort Mode (shipped)
+- Bigger text (17px base, hero title 30px, GO button 22px)
+- 44px+ tap targets everywhere
+- Walking-time math at 55 m/min instead of 80 (elderly pace)
+- Aurora dialed back to 35% opacity
+- Calmer animations
+- Toggle persists across sessions
+
+### Bench / seating filter (NEW — P1)
+- OSM tag: `bench=yes` on amenity nodes nearby
+- Filter chip: "🪑 Bench" — show bathrooms within 50m of a bench
+- For elders who need to rest on the way
+- Effort: **S** (extends the Overpass query)
+
+### Ground-floor only filter (NEW — P1)
+- OSM tag: `level=0` or absence of stairs/elevator tags
+- Some malls/transit have toilets only on upper levels with stairs
+- Filter chip: "🚷 No stairs"
+- Effort: **S** (tag check)
+
+### Rest-stop chains (NEW — P2)
+- Highway rest stops: AAA-rated, large stalls, often free
+- Curated list: state DOT rest areas, Buc-ee's, Wawa, Sheetz, Pilot
+- Already partially in commonPlaces; extend with `highway=rest_area`
+  Overpass query
+- Effort: **S**
+
+### Senior centers + libraries (NEW — P2)
+- Always-clean, always-staffed, always-accessible: senior centers,
+  community centers, libraries, hospitals
+- OSM tags: `amenity=community_centre|library|social_facility|hospital`
+- Add to common-places-style query, label "Senior-friendly" badge
+- Effort: **S**
+
+### Voice mode for low-vision / motor difficulty ✓ shipped
+- Web Speech API → "find a bathroom" / "next one" / "show map"
+- Listening state visible (red pulse, transcript display)
+- Already pairs well with Comfort Mode
+
+### Future (needs backend or platform features)
+- High-contrast theme variant (beyond midnight)
+- Screen reader pass on the whole app (aria-live regions for hero
+  swipe announcements, semantic landmarks)
+- Native iOS Dynamic Type / Android FontScale support (Capacitor)
+- Caregiver mode: a parent/child can watch where their elder went
+  (with explicit consent on both sides; sensitive privacy story)

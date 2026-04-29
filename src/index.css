@@ -2554,3 +2554,113 @@ body {
    Polyline overlay — keep clean over Leaflet
    ============================================================ */
 .leaflet-overlay-pane svg path { transition: stroke-width 0.2s; }
+
+/* =============================================================
+   Comfort Mode — bigger text, larger tap targets, less visual
+   noise. Triggered by data-comfort="on" on <html>. Stacks with
+   any theme.
+   ============================================================= */
+
+[data-comfort="on"] {
+  /* Bump base type 20% */
+  font-size: 17px;
+}
+
+[data-comfort="on"] body {
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+[data-comfort="on"] .app-header { padding: 16px 18px; }
+[data-comfort="on"] .app-header h1 { font-size: 19px; }
+
+[data-comfort="on"] .header-refresh,
+[data-comfort="on"] .theme-toggle {
+  width: 44px;
+  height: 44px;
+  font-size: 18px;
+}
+
+/* Hero gets bigger and calmer */
+[data-comfort="on"] .hero { padding: 28px 24px; }
+[data-comfort="on"] .hero-name { font-size: 30px; line-height: 1.15; }
+[data-comfort="on"] .hero-address { font-size: 16px; margin-bottom: 18px; }
+[data-comfort="on"] .hero-stat-num { font-size: 34px; }
+[data-comfort="on"] .hero-stat-label { font-size: 12px; }
+[data-comfort="on"] .hero-go {
+  padding: 22px;
+  font-size: 22px;
+  letter-spacing: 1px;
+  min-height: 64px;
+}
+[data-comfort="on"] .hero-details { font-size: 16px; padding: 14px; }
+
+/* Calm the decorative aurora */
+[data-comfort="on"] .aurora { opacity: 0.35; }
+[data-comfort="on"] .hero-pulse,
+[data-comfort="on"] .streak-flame {
+  animation-duration: 4s; /* slower; less attention-grabbing */
+}
+
+/* Bigger filter chips */
+[data-comfort="on"] .chip {
+  padding: 12px 18px;
+  font-size: 15px;
+  height: 44px;
+}
+[data-comfort="on"] .filter-bar { padding: 14px 18px; gap: 12px; }
+
+/* Bigger alt cards */
+[data-comfort="on"] .alt-card {
+  width: 180px;
+  padding: 14px;
+}
+[data-comfort="on"] .alt-distance { font-size: 17px; }
+[data-comfort="on"] .alt-name { font-size: 15px; }
+[data-comfort="on"] .alt-street { font-size: 13px; }
+
+/* Bigger action buttons */
+[data-comfort="on"] .map-toggle,
+[data-comfort="on"] .add-bathroom-btn,
+[data-comfort="on"] .voice-btn,
+[data-comfort="on"] .roulette-btn {
+  padding: 18px 16px;
+  font-size: 16px;
+  min-height: 56px;
+}
+
+/* Modal */
+[data-comfort="on"] .modal { padding: 24px 24px calc(28px + var(--safe-bottom)); }
+[data-comfort="on"] .modal-title { font-size: 24px; }
+[data-comfort="on"] .modal-section h3 { font-size: 14px; }
+[data-comfort="on"] .modal-section p { font-size: 16px; }
+[data-comfort="on"] .cta-button {
+  padding: 18px;
+  font-size: 17px;
+  min-height: 56px;
+}
+[data-comfort="on"] .modal-fav,
+[data-comfort="on"] .modal-close {
+  width: 40px;
+  height: 40px;
+  font-size: 24px;
+}
+
+/* Condition report buttons */
+[data-comfort="on"] .condition-btn {
+  padding: 14px 14px;
+  font-size: 15px;
+  min-height: 56px;
+}
+
+/* Visual indicator that comfort is on */
+.comfort-on {
+  background: linear-gradient(135deg, #fef3c7, #fed7aa) !important;
+  color: #92400e !important;
+  border: 1px solid #fcd34d;
+}
+[data-theme="midnight"] .comfort-on {
+  background: rgba(251, 191, 36, 0.18) !important;
+  color: #fbbf24 !important;
+  border-color: rgba(251, 191, 36, 0.4);
+}
