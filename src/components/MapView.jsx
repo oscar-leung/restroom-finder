@@ -180,7 +180,10 @@ export default function MapView({
           );
         })()}
 
-        {/* Restroom pins */}
+        {/* Restroom pins. Clustering temporarily reverted — the
+            react-leaflet-cluster lib breaks SSR/dev module init in
+            this stack; we'll do native L.markerClusterGroup wiring
+            in a follow-up PR. For now this scales fine to ~200 pins. */}
         {restrooms.map((r) => {
           const visitCount = visits[r.id]?.count || 0;
           return (

@@ -6,6 +6,7 @@ import { distanceMeters } from "./utils/distance";
 import IntroScreen from "./components/IntroScreen";
 import LoadingGame from "./components/LoadingGame";
 import HeroStack from "./components/HeroStack";
+import SearchBar from "./components/SearchBar";
 import useOnline from "./hooks/useOnline";
 import AlternativesRow from "./components/AlternativesRow";
 import MapView from "./components/MapView";
@@ -40,8 +41,15 @@ function App() {
     refresh: refreshLocation,
   } = useGeolocation();
 
-  const position = geoPosition || (geoError ? DEFAULT_POSITION : null);
-  const usingFallback = !geoPosition && !!geoError;
+  // Searched location override — declared first so it's available to
+  // the `position` computation below. Set by the SearchBar component.
+  const [searchedLocation, setSearchedLocation] = useState(null);
+
+  // Effective position: searched > GPS > fallback.
+  const realPosition = geoPosition || (geoError ? DEFAULT_POSITION : null);
+  const position = searchedLocation || realPosition;
+  const usingFallback = !geoPosition && !!geoError && !searchedLocation;
+  const usingSearchedLocation = !!searchedLocation;
 
   // --- Restrooms ---
   const [restrooms, setRestrooms] = useState([]);
@@ -357,6 +365,27 @@ function App() {
           📡 Offline — showing your last cached bathrooms
         </div>
       )}
+
+      {usingSearchedLocation && (
+        <div className="searched-banner">
+          🔎 Showing results near <strong>{searchedLocation.displayName?.split(",").slice(0, 2).join(",")}</strong>
+          <button onClick={() => setSearchedLocation(null)} className="searched-clear">
+            back to me
+          </button>
+        </div>
+      )}
+
+      <SearchBar
+        onPick={(loc) => {
+          setSearchedLocation({
+            latitude: loc.lat,
+            longitude: loc.lng,
+            displayName: loc.displayName,
+          });
+          setHeroIndex(0);
+        }}
+        onClear={() => setSearchedLocation(null)}
+      />
 
       <FilterBar
         filters={filters}

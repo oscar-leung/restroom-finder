@@ -5,7 +5,7 @@ import { isOpenNow, formatHours } from "../utils/hours";
 import { isFavorite, toggleFavorite } from "../services/favorites";
 import { tryUnlock } from "../services/achievements";
 import { reportClean, getCleaningLog, formatRelative, getBountyStatus } from "../services/cleaningLog";
-import { uploadPhoto, getPhotos } from "../services/photos";
+import { uploadPhoto, getPhotos, migrateLegacyPhotos } from "../services/photos";
 import { reportCondition, getBathroomState, REPORT_TYPES } from "../services/conditionReports";
 import { trackEvent } from "../utils/analytics";
 import Reviews from "./Reviews";
@@ -25,9 +25,7 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
   const [cleaning, setCleaning] = useState(() =>
     restroom ? getCleaningLog(restroom.id) : null
   );
-  const [photos, setPhotos] = useState(() =>
-    restroom ? getPhotos(restroom.id) : []
-  );
+  const [photos, setPhotos] = useState([]);
   const [uploadError, setUploadError] = useState(null);
   const [bathState, setBathState] = useState(() =>
     restroom ? getBathroomState(restroom.id) : null
@@ -38,9 +36,12 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
   useEffect(() => {
     if (restroom) {
       setCleaning(getCleaningLog(restroom.id));
-      setPhotos(getPhotos(restroom.id));
       setFavorited(isFavorite(restroom.id));
       setBathState(getBathroomState(restroom.id));
+      // photos are async (IndexedDB)
+      let cancelled = false;
+      getPhotos(restroom.id).then((p) => { if (!cancelled) setPhotos(p); });
+      return () => { cancelled = true; };
     }
   }, [restroom]);
 
@@ -74,7 +75,8 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
     setUploadError(null);
     try {
       await uploadPhoto(restroom.id, file);
-      setPhotos(getPhotos(restroom.id));
+      const fresh = await getPhotos(restroom.id);
+      setPhotos(fresh);
       trackEvent("photo_uploaded", { id: String(restroom.id) });
     } catch (err) {
       setUploadError(err.message || "Couldn't upload that photo.");
