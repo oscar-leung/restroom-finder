@@ -2281,3 +2281,276 @@ body {
   box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
   text-shadow: 0 0 6px rgba(0, 240, 255, 0.6);
 }
+
+/* =============================================================
+   "Midnight" dark mode — sophisticated, not cyberpunk.
+   Linear/Notion-style. Soft navy backdrop, indigo accents,
+   gentle borders, no scan lines, no neon glow.
+   Overrides the louder [data-theme="cyber"] rules above.
+   ============================================================= */
+[data-theme="midnight"] {
+  --primary: #818cf8;
+  --primary-dark: #6366f1;
+  --primary-soft: rgba(129, 140, 248, 0.14);
+  --accent: #c084fc;
+  --bg: #0f1117;
+  --bg-soft: #0a0c12;
+  --bg-muted: #1a1d26;
+  --text: #e6e8ee;
+  --text-muted: #8b92a3;
+  --border: rgba(255, 255, 255, 0.08);
+  --shadow-hero: 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="midnight"] body {
+  background:
+    radial-gradient(1200px 700px at 90% -10%, rgba(129, 140, 248, 0.08), transparent 60%),
+    radial-gradient(900px 600px at -10% 30%, rgba(192, 132, 252, 0.06), transparent 60%),
+    #0a0c12;
+  background-attachment: fixed;
+}
+
+/* Kill the scan-line overlay that the cyber theme had */
+[data-theme="midnight"] .app::before { display: none; }
+
+[data-theme="midnight"] .app-header {
+  background: rgba(15, 17, 23, 0.85) !important;
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: saturate(180%) blur(20px);
+}
+[data-theme="midnight"] .app-header h1 {
+  color: var(--text);
+  text-shadow: none;
+}
+[data-theme="midnight"] .app-header .app-tag {
+  color: var(--text-muted);
+  text-shadow: none;
+}
+
+[data-theme="midnight"] .hero {
+  background: linear-gradient(140deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
+  border: 1px solid rgba(129, 140, 248, 0.18);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+[data-theme="midnight"] .hero-name {
+  color: white;
+  text-shadow: none;
+}
+[data-theme="midnight"] .hero-stat-num {
+  color: white;
+  text-shadow: none;
+}
+[data-theme="midnight"] .hero-go {
+  background: white;
+  color: #4c1d95;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  border: none;
+}
+[data-theme="midnight"] .hero-go:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="midnight"] .alt-card,
+[data-theme="midnight"] .map-toggle,
+[data-theme="midnight"] .add-bathroom-btn,
+[data-theme="midnight"] .modal,
+[data-theme="midnight"] .recent-row,
+[data-theme="midnight"] .roulette-btn {
+  background: var(--bg-muted) !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+  backdrop-filter: none;
+}
+
+[data-theme="midnight"] .alt-name { color: var(--text); }
+[data-theme="midnight"] .alt-distance { color: var(--primary); text-shadow: none; }
+[data-theme="midnight"] .alt-street { color: var(--text-muted); }
+
+[data-theme="midnight"] .count-num {
+  color: var(--primary);
+  text-shadow: none;
+}
+[data-theme="midnight"] .count-summary { color: var(--text-muted); }
+
+[data-theme="midnight"] .chip {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+[data-theme="midnight"] .chip-active {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary);
+  text-shadow: none;
+  box-shadow: none;
+}
+[data-theme="midnight"] .filter-bar .chip-locate {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  color: white;
+  border: none;
+}
+
+[data-theme="midnight"] .badge { letter-spacing: normal; }
+[data-theme="midnight"] .badge-free,
+[data-theme="midnight"] .badge-open {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+}
+[data-theme="midnight"] .badge-rating {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+[data-theme="midnight"] .badge-private {
+  background: rgba(192, 132, 252, 0.15);
+  color: #c084fc;
+}
+
+[data-theme="midnight"] .roulette-btn {
+  background: linear-gradient(135deg, rgba(192, 132, 252, 0.12), rgba(129, 140, 248, 0.12)) !important;
+  border-color: var(--border) !important;
+  color: var(--accent);
+  text-shadow: none;
+}
+
+[data-theme="midnight"] .streak-active {
+  background: linear-gradient(135deg, rgba(251, 146, 60, 0.18), rgba(251, 191, 36, 0.18));
+  color: #fb923c;
+  border-color: rgba(251, 146, 60, 0.4);
+  text-shadow: none;
+}
+
+[data-theme="midnight"] .points-badge {
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-color: var(--primary);
+  box-shadow: none;
+  text-shadow: none;
+}
+
+[data-theme="midnight"] .theme-toggle {
+  background: var(--bg-muted);
+  border: 1px solid var(--border);
+  color: var(--text);
+  box-shadow: none;
+}
+
+[data-theme="midnight"] .header-refresh {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+}
+
+[data-theme="midnight"] .fallback-banner,
+[data-theme="midnight"] .offline-banner {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  border-color: var(--border);
+}
+
+[data-theme="midnight"] .footer-note { color: var(--text-muted); }
+[data-theme="midnight"] .footer-note a { color: var(--primary); }
+
+[data-theme="midnight"] .modal-fav { background: var(--bg-muted); color: var(--text-muted); }
+[data-theme="midnight"] .modal-fav-on { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+[data-theme="midnight"] .modal-close { background: var(--bg-muted); color: var(--text-muted); }
+[data-theme="midnight"] .modal-grip { background: var(--text-muted); }
+
+[data-theme="midnight"] .condition-btn {
+  background: var(--bg-muted);
+  border-color: var(--border);
+  color: var(--text);
+}
+[data-theme="midnight"] .condition-btn:active {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+}
+[data-theme="midnight"] .condition-pts {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+[data-theme="midnight"] .condition-pill {
+  background: var(--bg-muted);
+  color: var(--text);
+}
+[data-theme="midnight"] .condition-when { color: var(--text-muted); }
+
+[data-theme="midnight"] .btn-secondary {
+  background: var(--bg-muted);
+  color: var(--text);
+}
+
+[data-theme="midnight"] details,
+[data-theme="midnight"] .review-form,
+[data-theme="midnight"] .add-form input,
+[data-theme="midnight"] .add-form textarea {
+  background: var(--bg-muted);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+[data-theme="midnight"] .mini-map { background: var(--bg-muted); }
+
+/* ============================================================
+   Voice button
+   ============================================================ */
+.voice-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s, background 0.15s;
+}
+.voice-btn:active { transform: scale(0.98); }
+.voice-btn-listening {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  color: #991b1b;
+  border-color: #f87171;
+  animation: voice-pulse 1.2s ease-in-out infinite;
+}
+@keyframes voice-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+  50%      { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+}
+.voice-icon { font-size: 18px; line-height: 1; }
+.voice-transcript {
+  font-size: 12px;
+  font-weight: 500;
+  color: #991b1b;
+  font-style: italic;
+  margin-left: 6px;
+  max-width: 140px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.voice-btn-unsupported {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+[data-theme="midnight"] .voice-btn {
+  background: var(--bg-muted);
+  border-color: var(--border);
+  color: var(--text);
+}
+[data-theme="midnight"] .voice-btn-listening {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border-color: #f87171;
+}
+
+/* ============================================================
+   Polyline overlay — keep clean over Leaflet
+   ============================================================ */
+.leaflet-overlay-pane svg path { transition: stroke-width 0.2s; }

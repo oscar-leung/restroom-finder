@@ -15,6 +15,7 @@ import RecentlyAdded from "./components/RecentlyAdded";
 import FilterBar from "./components/FilterBar";
 import RouletteButton from "./components/RouletteButton";
 import AchievementToast from "./components/AchievementToast";
+import VoiceButton from "./components/VoiceButton";
 import { getUserBathrooms } from "./services/userBathrooms";
 import { recordVisit, getAllVisits } from "./services/visitTracker";
 import { getFavorites } from "./services/favorites";
@@ -311,10 +312,10 @@ function App() {
           <button
             className="theme-toggle"
             onClick={onToggleTheme}
-            title={theme === "cyber" ? "Back to default" : "2077 mode"}
-            aria-label="Toggle theme"
+            title={theme === "midnight" ? "Switch to light" : "Switch to dark"}
+            aria-label="Toggle dark mode"
           >
-            {theme === "cyber" ? "☀" : "◐"}
+            {theme === "midnight" ? "☀" : "☾"}
           </button>
           <button
             className="header-refresh"
@@ -384,6 +385,20 @@ function App() {
           onDetails={() => setDetailsOpen(hero)}
           onNext={handleNext}
           onPrev={handlePrev}
+        />
+
+        <VoiceButton
+          onGo={() => {
+            if (hero) {
+              handleGo(hero);
+              const url = `https://www.google.com/maps/dir/?api=1&destination=${hero.latitude},${hero.longitude}&travelmode=walking`;
+              window.open(url, "_blank", "noopener,noreferrer");
+            }
+          }}
+          onNext={handleNext}
+          onOpenMap={() => setMapOpen(true)}
+          onAddBathroom={() => setAddOpen(true)}
+          onRoulette={() => sorted.length >= 3 && handleRoulette(sorted[Math.floor(Math.random() * sorted.length)])}
         />
 
         {sorted.length >= 3 && (

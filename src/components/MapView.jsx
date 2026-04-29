@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import { useEffect } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -123,6 +123,27 @@ export default function MapView({
         <Marker position={center} icon={userDotIcon}>
           <Popup>You are here</Popup>
         </Marker>
+
+        {/* Polyline from user to currently-selected bathroom — gives a
+            "blue line" feeling like Apple/Google Maps without needing
+            real routing. It's the straight-line, but visually it makes
+            distance feel real and instantly tells you which way to walk. */}
+        {(() => {
+          const sel = restrooms.find((r) => r.id === selectedId);
+          if (!sel) return null;
+          return (
+            <Polyline
+              positions={[center, [sel.latitude, sel.longitude]]}
+              pathOptions={{
+                color: "#6366f1",
+                weight: 4,
+                opacity: 0.8,
+                dashArray: "8, 8",
+                lineCap: "round",
+              }}
+            />
+          );
+        })()}
 
         {/* Restroom pins */}
         {restrooms.map((r) => {

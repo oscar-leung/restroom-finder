@@ -1,17 +1,17 @@
 /**
  * Theme switcher — currently two themes:
  *   - "default": pastel pink-violet kawaii
- *   - "cyber":   neon 2077 cyberpunk dark mode
+ *   - "midnight":   neon 2077 midnightpunk dark mode
  *
  * Theme is applied as `data-theme="<name>"` on document.documentElement
- * so CSS can scope styles via `[data-theme="cyber"] .hero { ... }`.
+ * so CSS can scope styles via `[data-theme="midnight"] .hero { ... }`.
  *
  * Persisted in localStorage. Honors system dark-mode preference on
  * first visit only — after that the user's explicit choice wins.
  */
 
 const KEY = "gg_theme_v1";
-const ALLOWED = new Set(["default", "cyber"]);
+const ALLOWED = new Set(["default", "midnight"]);
 
 function detectInitial() {
   try {
@@ -36,7 +36,7 @@ export function applyTheme(theme) {
 
 export function toggleTheme() {
   const current = getTheme();
-  const next = current === "cyber" ? "default" : "cyber";
+  const next = current === "midnight" ? "default" : "midnight";
   applyTheme(next);
   return next;
 }
