@@ -4,6 +4,7 @@ import { trackEvent } from "../utils/analytics";
 import { getFlag } from "../utils/featureFlags";
 import { getStats } from "../services/reviews";
 import { walkingMinutes } from "../services/comfort";
+import { bearing, bearingToCardinal } from "../services/routing";
 import { isOpenNow } from "../utils/hours";
 import useSwipe from "../hooks/useSwipe";
 
@@ -28,6 +29,7 @@ import useSwipe from "../hooks/useSwipe";
  */
 export default function HeroCard({
   restroom,
+  userPosition,
   index = 0,
   total = 1,
   visitCount = 0,
@@ -35,6 +37,7 @@ export default function HeroCard({
   onDetails,
   onNext,
   onPrev,
+  onShowRoute,
 }) {
   // Swipe hook — bind attaches pointer handlers + a live transform
   const { bind, offsetX, isDragging } = useSwipe({
@@ -68,6 +71,28 @@ export default function HeroCard({
 
   // Walking time respects comfort mode (slower pace for elders / accessibility)
   const walkMins = walkingMinutes(restroom.distance);
+
+  // Compass direction from user → bathroom
+  const cardinal =
+    userPosition && restroom.latitude
+      ? bearingToCardinal(
+          bearing(
+            userPosition.latitude,
+            userPosition.longitude,
+            restroom.latitude,
+            restroom.longitude
+          )
+        )
+      : null;
+  const bearingDeg =
+    userPosition && restroom.latitude
+      ? bearing(
+          userPosition.latitude,
+          userPosition.longitude,
+          restroom.latitude,
+          restroom.longitude
+        )
+      : null;
   const address = [restroom.street, restroom.city].filter(Boolean).join(", ");
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${restroom.latitude},${restroom.longitude}&travelmode=walking`;
 
@@ -106,6 +131,21 @@ export default function HeroCard({
           <div className="hero-stat-num">{walkMins}</div>
           <div className="hero-stat-label">min walk</div>
         </div>
+        {cardinal != null && (
+          <>
+            <div className="hero-stat-divider" />
+            <div className="hero-stat hero-stat-compass">
+              <div
+                className="hero-compass"
+                style={{ transform: `rotate(${bearingDeg}deg)` }}
+                aria-hidden="true"
+              >
+                ↑
+              </div>
+              <div className="hero-stat-label">go {cardinal}</div>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="hero-badges">
@@ -171,13 +211,27 @@ export default function HeroCard({
         {getFlag("go_button_label") === "go-now" ? "GO NOW" : "GO"}
       </a>
 
-      <button
-        className="hero-details"
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={onDetails}
-      >
-        More details
-      </button>
+      <div className="hero-secondary-row">
+        {onShowRoute && (
+          <button
+            className="hero-route-btn"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => {
+              trackEvent("route_preview_opened", { id: String(restroom.id) });
+              onShowRoute();
+            }}
+          >
+            🗺️ Show route
+          </button>
+        )}
+        <button
+          className="hero-details"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={onDetails}
+        >
+          More details
+        </button>
+      </div>
 
       {/* Position dots + swipe hint */}
       {total > 1 && (

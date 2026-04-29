@@ -396,6 +396,7 @@ function App() {
           sorted={sorted}
           heroIndex={safeIndex}
           restroom={hero}
+          userPosition={position}
           index={safeIndex}
           total={sorted.length}
           visitCount={hero ? visits[hero.id]?.count || 0 : 0}
@@ -403,6 +404,7 @@ function App() {
           onDetails={() => setDetailsOpen(hero)}
           onNext={handleNext}
           onPrev={handlePrev}
+          onShowRoute={() => setMapOpen(true)}
         />
 
         <VoiceButton

@@ -1,7 +1,8 @@
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { fetchWalkingRoute } from "../services/routing";
 
 /**
  * Build a custom Leaflet DivIcon from an SVG string.
@@ -104,6 +105,24 @@ export default function MapView({
   const center = [position.latitude, position.longitude];
   const hasVisits = Object.keys(visits).length > 0;
 
+  // Real walking-route polyline via OSRM. Falls back to straight line
+  // if OSRM fails or returns nothing.
+  const [routeCoords, setRouteCoords] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    setRouteCoords(null);
+    const sel = restrooms.find((r) => r.id === selectedId);
+    if (!sel) return;
+    fetchWalkingRoute(
+      { lat: position.latitude, lng: position.longitude },
+      { lat: sel.latitude, lng: sel.longitude }
+    ).then((res) => {
+      if (cancelled || !res) return;
+      setRouteCoords(res.coordinates);
+    });
+    return () => { cancelled = true; };
+  }, [selectedId, position.latitude, position.longitude]);
+
   return (
     <>
       <MapContainer
@@ -124,24 +143,40 @@ export default function MapView({
           <Popup>You are here</Popup>
         </Marker>
 
-        {/* Polyline from user to currently-selected bathroom — gives a
-            "blue line" feeling like Apple/Google Maps without needing
-            real routing. It's the straight-line, but visually it makes
-            distance feel real and instantly tells you which way to walk. */}
+        {/* Walking route from user to currently-selected bathroom.
+            We try OSRM (real walking path) first; while it's loading or
+            if it fails, show the straight-line fallback. */}
         {(() => {
           const sel = restrooms.find((r) => r.id === selectedId);
           if (!sel) return null;
+          const useReal = routeCoords && routeCoords.length > 1;
+          const positions = useReal
+            ? routeCoords
+            : [center, [sel.latitude, sel.longitude]];
           return (
-            <Polyline
-              positions={[center, [sel.latitude, sel.longitude]]}
-              pathOptions={{
-                color: "#6366f1",
-                weight: 4,
-                opacity: 0.8,
-                dashArray: "8, 8",
-                lineCap: "round",
-              }}
-            />
+            <>
+              {/* Soft halo behind the line */}
+              <Polyline
+                positions={positions}
+                pathOptions={{
+                  color: "#6366f1",
+                  weight: 8,
+                  opacity: 0.18,
+                  lineCap: "round",
+                }}
+              />
+              {/* Main line */}
+              <Polyline
+                positions={positions}
+                pathOptions={{
+                  color: "#6366f1",
+                  weight: 4,
+                  opacity: 0.95,
+                  dashArray: useReal ? null : "8, 8",
+                  lineCap: "round",
+                }}
+              />
+            </>
           );
         })()}
 

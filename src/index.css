@@ -2664,3 +2664,68 @@ body {
   color: #fbbf24 !important;
   border-color: rgba(251, 191, 36, 0.4);
 }
+
+/* ============================================================
+   Hero compass arrow + secondary action row
+   ============================================================ */
+.hero-stat-compass {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.hero-compass {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  transition: transform 0.4s cubic-bezier(0.4, 0.1, 0.3, 1);
+}
+
+.hero-secondary-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.hero-route-btn,
+.hero-secondary-row .hero-details {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  background: rgba(255,255,255,0.15);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 10px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.12s;
+  text-underline-offset: 0;
+  width: auto;
+  margin-top: 0;
+  opacity: 1;
+  border: 1px solid rgba(255,255,255,0.18);
+}
+.hero-secondary-row .hero-details {
+  text-decoration: none;
+}
+.hero-route-btn:active,
+.hero-secondary-row .hero-details:active {
+  transform: scale(0.97);
+  background: rgba(255,255,255,0.25);
+}
+
+[data-theme="midnight"] .hero-secondary-row .hero-route-btn,
+[data-theme="midnight"] .hero-secondary-row .hero-details {
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.12);
+}
