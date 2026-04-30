@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { addUserBathroom, refugeSubmitUrl } from "../services/userBathrooms";
+import { contributeToRefuge } from "../services/refugeContribute";
 import { trackEvent } from "../utils/analytics";
 
 /**
@@ -19,11 +20,15 @@ export default function AddBathroomModal({ position, onClose, onAdded }) {
   const [accessible, setAccessible] = useState(false);
   const [unisex, setUnisex] = useState(false);
   const [comment, setComment] = useState("");
+  const [shareUpstream, setShareUpstream] = useState(true); // default ON — community good
   const [submitted, setSubmitted] = useState(null);
+  const [upstreamStatus, setUpstreamStatus] = useState(null); // "pending" | "ok" | "error"
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     if (!position) return;
+
+    // 1. Save locally — instant feedback for the user
     const entry = addUserBathroom({
       latitude: position.latitude,
       longitude: position.longitude,
@@ -32,9 +37,31 @@ export default function AddBathroomModal({ position, onClose, onAdded }) {
       unisex,
       comment,
     });
-    trackEvent("bathroom_added", { accessible, unisex });
+    trackEvent("bathroom_added", { accessible, unisex, shareUpstream });
     setSubmitted(entry);
     onAdded?.(entry);
+
+    // 2. Optionally POST to Refuge in the background — fire-and-forget
+    //    The user already has their local copy; upstream is the bonus.
+    if (shareUpstream) {
+      setUpstreamStatus("pending");
+      const result = await contributeToRefuge({
+        name,
+        latitude: position.latitude,
+        longitude: position.longitude,
+        accessible,
+        unisex,
+        comment,
+        directions: comment, // Refuge calls our notes "directions"
+      });
+      if (result.ok) {
+        setUpstreamStatus("ok");
+        trackEvent("refuge_post_succeeded");
+      } else {
+        setUpstreamStatus("error");
+        trackEvent("refuge_post_failed", { error: result.error?.slice(0, 80) || "" });
+      }
+    }
   };
 
   return (
@@ -102,46 +129,65 @@ export default function AddBathroomModal({ position, onClose, onAdded }) {
                 />
               </div>
 
+              <label className="add-form-share-toggle">
+                <input
+                  type="checkbox"
+                  checked={shareUpstream}
+                  onChange={(e) => setShareUpstream(e.target.checked)}
+                />
+                <span>
+                  <strong>Share with everyone</strong> — also send this to
+                  Refuge Restrooms so the world's open data improves.
+                  Their moderators review before publishing.
+                </span>
+              </label>
+
               <div className="add-form-actions">
                 <button type="submit" className="add-form-submit">
-                  Save to my map
+                  Save{shareUpstream ? " + share" : " to my map"}
                 </button>
               </div>
-
-              <p className="add-form-share">
-                Saved on your device only. Want to share with everyone?
-              </p>
             </form>
           </>
         ) : (
           <>
             <h2 className="modal-title">✓ Saved</h2>
             <p className="modal-address">
-              "{submitted.name}" is now in your list. It'll show up sorted by distance.
+              "{submitted.name}" is now in your list, sorted by distance.
             </p>
 
-            <div className="modal-section">
-              <h3>Want to share it with the world?</h3>
-              <p>
-                Submit it to <strong>Refuge Restrooms</strong> — their volunteers
-                review it and add it to the global database so anyone using
-                this app (or others) sees it too.
-              </p>
-            </div>
-
-            <a
-              className="cta-button"
-              href={refugeSubmitUrl()}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackEvent("refuge_submit_clicked")}
-            >
-              Share with everyone →
-            </a>
+            {/* Upstream contribution status */}
+            {upstreamStatus === "pending" && (
+              <div className="upstream-banner upstream-pending">
+                <div className="spinner spinner-sm" />
+                Sharing with Refuge Restrooms…
+              </div>
+            )}
+            {upstreamStatus === "ok" && (
+              <div className="upstream-banner upstream-ok">
+                ✓ Shared with Refuge Restrooms — pending their review.
+                The world thanks you.
+              </div>
+            )}
+            {upstreamStatus === "error" && (
+              <div className="upstream-banner upstream-error">
+                Couldn't share upstream right now. Your local copy is
+                fine. <a href={refugeSubmitUrl()} target="_blank" rel="noopener noreferrer">
+                Submit it manually here.</a>
+              </div>
+            )}
+            {upstreamStatus === null && !shareUpstream && (
+              <div className="upstream-banner upstream-info">
+                Saved on your device only. Want strangers to find it too?{" "}
+                <a href={refugeSubmitUrl()} target="_blank" rel="noopener noreferrer"
+                   onClick={() => trackEvent("refuge_submit_clicked")}>
+                  Share with Refuge Restrooms →
+                </a>
+              </div>
+            )}
 
             <button
-              className="hero-details"
-              style={{ color: "var(--text-muted)", marginTop: 12 }}
+              className="cta-button"
               onClick={onClose}
             >
               Done

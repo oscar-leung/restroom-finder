@@ -3,6 +3,7 @@ import { fetchSF } from "./dataSources/sf";
 import { fetchGooglePlaces } from "./dataSources/googlePlaces";
 import { fetchCommonPlaces } from "./dataSources/commonPlaces";
 import { fetchWikidata } from "./dataSources/wikidata";
+import { fetchWheelmap } from "./dataSources/wheelmap";
 
 /**
  * Restroom data layer — aggregates 4+ sources and dedupes:
@@ -185,7 +186,13 @@ function bestName(t) {
  */
 // Inferred (common-places) sit BELOW everything explicit since they're
 // "probably has a bathroom" not "this is a public toilet".
-const SOURCE_PRIORITY = { user: 5, google: 5, nyc: 4, sf: 4, refuge: 3, wikidata: 3, osm: 2, inferred: 1 };
+const SOURCE_PRIORITY = {
+  user: 5, google: 5,
+  nyc: 4, sf: 4,
+  refuge: 3, wikidata: 3, wheelmap: 3,
+  osm: 2,
+  inferred: 1,
+};
 
 function dedupe(list) {
   const seen = new Map();
@@ -255,6 +262,7 @@ export async function fetchNearbyRestrooms(lat, lng) {
     fetchGooglePlaces(lat, lng), // no-op without VITE_GOOGLE_MAPS_KEY
     fetchCommonPlaces(lat, lng), // McDonald's / Starbucks / gas / big-box
     fetchWikidata(lat, lng),     // landmark / notable public toilets
+    fetchWheelmap(lat, lng),     // accessibility-focused (EU-heavy)
   ]);
 
   const combined = [];
