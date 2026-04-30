@@ -7,6 +7,7 @@ import IntroScreen from "./components/IntroScreen";
 import LoadingGame from "./components/LoadingGame";
 import HeroStack from "./components/HeroStack";
 import SearchBar from "./components/SearchBar";
+import CelebrationOverlay from "./components/CelebrationOverlay";
 import useOnline from "./hooks/useOnline";
 import AlternativesRow from "./components/AlternativesRow";
 import MapView from "./components/MapView";
@@ -76,6 +77,8 @@ function App() {
   });
   // Achievement toast queue (shows one at a time)
   const [achievement, setAchievement] = useState(null);
+  // Celebration overlay (fires after GO)
+  const [celebration, setCelebration] = useState(null);
   // Intro screen — shown on cold load
   const [introDone, setIntroDone] = useState(false);
   // Streak counter — Duolingo-style daily flame
@@ -207,6 +210,7 @@ function App() {
   };
 
   // Combined GO handler: records pattern + visit + streak; fires GA4 + achievements.
+  // Also pops the Strava-style celebration overlay.
   const handleGo = (restroom) => {
     if (!restroom) return;
     recordUsage();
@@ -215,6 +219,8 @@ function App() {
     // Streak: advance the daily flame counter
     const streakResult = touchStreak();
     setStreak({ count: streakResult.count, longest: streakResult.longest, isToday: true });
+    // Award points (small reward for using the app for its purpose)
+    const pointsForGO = 2;
     trackEvent("bathroom_visited", {
       id: String(restroom.id),
       visit_count: updated?.count || 1,
@@ -227,6 +233,15 @@ function App() {
     if (updated?.count === 3) {
       const three = tryUnlock("three_visits");
       if (three) setAchievement(three);
+    }
+    // Celebration popup — only when the streak advanced (avoids spam
+    // when a user re-taps GO multiple times within seconds)
+    if (streakResult.advanced || streakResult.reset) {
+      setCelebration({
+        bathroomName: restroom.name,
+        pointsEarned: pointsForGO,
+        streakCount: streakResult.count,
+      });
     }
   };
 
@@ -509,6 +524,22 @@ function App() {
         </p>
       </main>
 
+      {/* Floating Map pill — Airbnb-style "see results on map" */}
+      {!mapOpen && sorted.length > 0 && (
+        <button
+          className="map-pill"
+          onClick={() => {
+            setMapOpen(true);
+            trackEvent("map_opened", { restroom_count: sorted.length, source: "pill" });
+          }}
+          aria-label={`Show map (${sorted.length} bathrooms)`}
+        >
+          <span className="map-pill-icon">🗺️</span>
+          <span className="map-pill-label">Map</span>
+          <span className="map-pill-count">{sorted.length}</span>
+        </button>
+      )}
+
       {/* Fullscreen map overlay */}
       {mapOpen && (
         <div className="map-overlay">
@@ -543,6 +574,14 @@ function App() {
       <AchievementToast
         achievement={achievement}
         onDismiss={() => setAchievement(null)}
+      />
+
+      <CelebrationOverlay
+        isOpen={!!celebration}
+        bathroomName={celebration?.bathroomName}
+        pointsEarned={celebration?.pointsEarned}
+        streakCount={celebration?.streakCount}
+        onDone={() => setCelebration(null)}
       />
 
       {addOpen && (

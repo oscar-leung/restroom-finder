@@ -9,4 +9,21 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: process.env.VITE_BASE ?? '/restroom-finder/',
+  build: {
+    // Better chunking — split the heaviest libs out so the homepage
+    // critical path stays small.
+    rollupOptions: {
+      output: {
+        // Function form (required by rolldown). Returning a chunk name
+        // pulls the module into a named chunk; returning undefined lets
+        // the bundler decide.
+        manualChunks(id) {
+          if (id.includes("node_modules/opening_hours")) return "opening-hours";
+          if (id.includes("node_modules/leaflet")) return "leaflet-stack";
+          if (id.includes("node_modules/react-leaflet")) return "leaflet-stack";
+        },
+      },
+    },
+    chunkSizeWarningLimit: 800,
+  },
 })

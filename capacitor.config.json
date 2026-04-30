@@ -1,5 +1,39 @@
 {
-  "appId": "com.oscarleung.restroomfinder",
-  "appName": "Restroom Finder",
-  "webDir": "dist"
+  "appId": "com.oscarleung.gottago",
+  "appName": "Gotta Go",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "ios": {
+    "contentInset": "always",
+    "scrollEnabled": true,
+    "preferredContentMode": "mobile",
+    "limitsNavigationsToAppBoundDomains": false
+  },
+  "android": {
+    "backgroundColor": "#0f0a1f",
+    "allowMixedContent": false
+  },
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1200,
+      "launchAutoHide": true,
+      "backgroundColor": "#0f0a1f",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "splashFullScreen": true,
+      "splashImmersive": true
+    },
+    "Geolocation": {
+      "permissions": {
+        "location": "always"
+      }
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#0f0a1f"
+    }
+  }
 }

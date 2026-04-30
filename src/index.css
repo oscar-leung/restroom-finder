@@ -2952,3 +2952,158 @@ body {
   background: var(--bg-muted);
   color: var(--text-muted);
 }
+
+/* ============================================================
+   Strava-style post-GO celebration overlay
+   ============================================================ */
+.celebration {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, rgba(255,255,255,0.7), rgba(255,255,255,0.4));
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: cele-fade-in 0.18s ease-out;
+}
+.celebration-exit {
+  animation: cele-fade-out 0.4s ease-in forwards;
+}
+@keyframes cele-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes cele-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.celebration-burst {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: min(420px, 90vw);
+  height: min(420px, 90vw);
+  pointer-events: none;
+}
+.celebration-streak {
+  transform-origin: center;
+  animation: streak-burst 0.7s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+  opacity: 0;
+}
+@keyframes streak-burst {
+  0%   { opacity: 0; transform: scaleY(0.1); }
+  60%  { opacity: 1; transform: scaleY(1); }
+  100% { opacity: 0; transform: scaleY(1.4) translateY(-20px); }
+}
+
+.celebration-card {
+  position: relative;
+  z-index: 1;
+  background: white;
+  border-radius: 28px;
+  padding: 28px 36px;
+  text-align: center;
+  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.2);
+  animation: cele-pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1);
+  max-width: 90vw;
+}
+@keyframes cele-pop {
+  0%   { opacity: 0; transform: scale(0.7); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.celebration-emoji {
+  font-size: 56px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.celebration-headline {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.celebration-place {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 18px;
+  max-width: 240px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.celebration-stats {
+  display: flex;
+  gap: 28px;
+  justify-content: center;
+}
+.celebration-stat-num {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--primary-dark);
+}
+.celebration-stat-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-top: 2px;
+}
+
+[data-theme="midnight"] .celebration {
+  background: radial-gradient(ellipse at center, rgba(10, 0, 20, 0.7), rgba(10, 0, 20, 0.4));
+}
+[data-theme="midnight"] .celebration-card {
+  background: rgba(22, 0, 40, 0.95);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  color: #e8d4ff;
+}
+[data-theme="midnight"] .celebration-headline { color: #e8d4ff; }
+[data-theme="midnight"] .celebration-stat-num {
+  color: #00f0ff;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+}
+
+/* ============================================================
+   Floating Map pill (bottom-right)
+   ============================================================ */
+.map-pill {
+  position: fixed;
+  bottom: calc(20px + var(--safe-bottom));
+  right: 16px;
+  z-index: 200;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 12px 30px rgba(139, 92, 246, 0.4);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.map-pill:active {
+  transform: scale(0.96);
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.5);
+}
+.map-pill-icon { font-size: 16px; }
+.map-pill-count {
+  background: rgba(255, 255, 255, 0.25);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+[data-theme="midnight"] .map-pill {
+  background: linear-gradient(135deg, #00f0ff, #b026ff);
+  box-shadow: 0 0 24px rgba(0, 240, 255, 0.6);
+  color: #0a0014;
+}

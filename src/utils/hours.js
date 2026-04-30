@@ -1,21 +1,42 @@
 /**
  * Opening-hours utilities — backed by the real `opening_hours.js`
- * library (https://github.com/opening-hours/opening_hours.js).
+ * library, but loaded LAZILY so it doesn't bloat the initial bundle.
  *
- * Why we swapped from our hand-rolled parser:
- *   - Real OSM hours have edge cases (PH = public holidays, dawn/dusk
- *     SH = school holidays, "Mo-Fr 09:00-17:00, Sa 10:00-14:00; Su off")
- *     that are tedious to handle correctly.
- *   - opening_hours.js is the de-facto standard (used by OsmAnd,
- *     openstreetmap.org itself, Wheelmap, etc).
- *   - We get nicer locale-aware formatting for free.
+ * Why lazy: the library + its locale data is ~120 KB. We don't need
+ * it on first paint; we only need it when the user actually inspects
+ * a bathroom that has hours metadata. By gating it behind a dynamic
+ * import, the homepage stays fast and the library streams in over
+ * subsequent network idle time.
  *
- * The library is heavy-ish (~40 KB minified) but loads only once.
- * Existing call sites keep using `isOpenNow(str)` and `formatHours(str)`
- * with no API change.
+ * The synchronous shape `isOpenNow(str)` is preserved for callers,
+ * with a graceful fallback that returns `knownStatus: false` until
+ * the library finishes loading on first call.
  */
 
-import OpeningHours from "opening_hours";
+let _ohModule = null;
+let _ohPromise = null;
+
+function loadOH() {
+  if (_ohPromise) return _ohPromise;
+  _ohPromise = import("opening_hours")
+    .then((mod) => {
+      _ohModule = mod.default || mod;
+    })
+    .catch(() => {
+      _ohPromise = null;
+    });
+  return _ohPromise;
+}
+
+// Kick off the load eagerly but non-blocking — by the time a user
+// taps a bathroom card, this is usually warm.
+if (typeof window !== "undefined") {
+  if (window.requestIdleCallback) {
+    window.requestIdleCallback(loadOH, { timeout: 2000 });
+  } else {
+    setTimeout(loadOH, 1500);
+  }
+}
 
 /**
  * Returns:
@@ -26,33 +47,33 @@ export function isOpenNow(openingHours, now = new Date()) {
   if (!openingHours || typeof openingHours !== "string") {
     return { isOpen: false, knownStatus: false };
   }
+  const t = openingHours.trim();
+  if (t === "24/7") return { isOpen: true, knownStatus: true };
 
-  // 24/7 shortcut — opening_hours handles it but the shortcut is faster
-  if (openingHours.trim() === "24/7") {
-    return { isOpen: true, knownStatus: true };
+  // Library not loaded yet — bail to "unknown"; once loaded the next
+  // render pass will resolve correctly.
+  if (!_ohModule) {
+    loadOH(); // best-effort kick
+    return { isOpen: false, knownStatus: false };
   }
 
   try {
-    const oh = new OpeningHours(openingHours, null, { tag_key: "opening_hours" });
+    const oh = new _ohModule(openingHours, null, { tag_key: "opening_hours" });
     return { isOpen: oh.getState(now), knownStatus: true };
   } catch {
-    // Library couldn't parse this string — surface as "unknown"
     return { isOpen: false, knownStatus: false };
   }
 }
 
 /**
- * Friendly display of opening_hours.
+ * Friendly display of opening_hours — pure regex, no library needed.
  *   "24/7" → "Open 24 hours"
  *   "Mo-Fr 09:00-17:00" → "Mon–Fri 9:00–17:00"
- * Falls back to a light find/replace if the library can't process it.
  */
 export function formatHours(openingHours) {
   if (!openingHours) return null;
   const t = openingHours.trim();
   if (t === "24/7") return "Open 24 hours";
-
-  // Pretty-print the day codes
   return t
     .replace(/\bMo\b/g, "Mon")
     .replace(/\bTu\b/g, "Tue")
@@ -65,15 +86,11 @@ export function formatHours(openingHours) {
     .replace(/\bSH\b/g, "School holidays");
 }
 
-/**
- * Returns "Opens at 9:00" / "Closes at 17:00" / "Open until 22:00".
- * Useful for the hero subtitle when we want a softer signal than
- * a binary open/closed badge.
- */
+/** "Open until 17:00" / "Opens at 9:00" — null when not parseable. */
 export function nextChange(openingHours, now = new Date()) {
-  if (!openingHours) return null;
+  if (!openingHours || !_ohModule) return null;
   try {
-    const oh = new OpeningHours(openingHours, null, { tag_key: "opening_hours" });
+    const oh = new _ohModule(openingHours, null, { tag_key: "opening_hours" });
     const next = oh.getNextChange(now);
     if (!next) return null;
     const isOpen = oh.getState(now);
