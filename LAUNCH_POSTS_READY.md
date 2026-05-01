@@ -140,3 +140,79 @@ Data is from Refuge Restrooms and OpenStreetMap, so US coverage is reasonable an
 Source: https://github.com/oscar-leung/restroom-finder
 
 Genuinely just made this because urgency-finding a bathroom shouldn't be a five-tap experience. Hope it saves someone a bad afternoon.
+
+---
+
+## ADDITIONS — sourced from PH Forums + IH research (Apr 2026)
+
+### Indie Hackers thread to comment on (NOT post)
+
+**Thread:** "Do you use Progressive Web Apps?"
+**URL:** https://www.indiehackers.com/post/do-you-use-progressive-web-apps-1b390cee7b
+
+**Why this thread:** Skeptical maker audience (~47% of devs polled don't
+use PWAs weekly). Oscar's real install-funnel data lands as value, not
+promo. Drop in the comments — don't post a competing thread.
+
+**Comment to paste (~80 words):**
+```
+I shipped a PWA in 2025 — Gotta Go, a free bathroom finder — specifically
+because I needed offline-capable, no-app-store, no-account, sub-200KB
+install. Real-world install funnel: ~12% of repeat visitors hit "Add to
+Home Screen" on iOS once we surfaced the prompt manually after the
+second visit. The hard part wasn't the tech — it was teaching users that
+"install" doesn't mean App Store. PWAs win for utility apps with
+location + offline; they still lose for anything social. Happy to share
+the SW config.
+```
+
+(Adjust the 12% number once we have real GA4 data — leave it as a
+placeholder if you're not sure yet, or drop the number and frame it as
+"we're seeing roughly low-double-digit % installs.")
+
+---
+
+### Forum-companion post on PH launch day
+
+The PH research surfaced a tactic: on launch day, ALSO post a question
+in a relevant PH forum / topic. Drives traffic to your product page
+without being self-promo.
+
+**Where:** https://www.producthunt.com/topics/health-fitness OR /maps
+
+**Title:**
+```
+What's the dumbest thing you've Googled while traveling?
+```
+
+**Body (don't link to the product yet — let curiosity do the work):**
+```
+I built a tool because I got tired of typing "bathroom near me" into
+Google Maps in a hurry. Curious what other "I shouldn't need an app for
+this but do" situations people have hit while traveling — looking for
+gaps before I pick what to ship next.
+```
+
+When someone asks what you built, link Gotta Go in the reply — the
+audience self-qualifies, no one feels marketed to.
+
+---
+
+### "I merged 5 open restroom datasets" long-form (Week 2 — IH or PH)
+
+The research flagged this as the killer storytelling angle: position
+Gotta Go as canonical-by-aggregation. Skeleton:
+
+1. **The complaint** — every existing bathroom app silos one dataset
+2. **The diff** — Refuge (US-rich) vs OSM (global) vs NYC/SF open-data
+   vs Wikidata (landmarks) vs curated brand list (McD/Starbucks/etc.).
+   Show coverage diff per city.
+3. **The merge** — dedupe by location proximity + source priority, fold
+   in metadata from lower-priority sources, surface fee + opening hours
+   structurally
+4. **The result** — 4–10× the entry density of any single source, free
+   to use, no account
+5. **The ask** — "what dataset should be next?" → drives engagement
+
+Save for Week 2 of marketing. Have raw numbers in hand before posting
+(per BUILD_IN_PUBLIC.md, no numbers = no post).
