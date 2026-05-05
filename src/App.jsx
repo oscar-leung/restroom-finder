@@ -8,7 +8,15 @@ import LoadingGame from "./components/LoadingGame";
 import HeroStack from "./components/HeroStack";
 import SearchBar from "./components/SearchBar";
 import CelebrationOverlay from "./components/CelebrationOverlay";
+import PersonaPicker from "./components/PersonaPicker";
 import useOnline from "./hooks/useOnline";
+import {
+  getPersona,
+  hasPickedPersona,
+  setPersona as savePersona,
+  getPersonaFilterDefaults,
+  showsGamification,
+} from "./services/persona";
 import AlternativesRow from "./components/AlternativesRow";
 import MapView from "./components/MapView";
 import RestroomPanel from "./components/RestroomPanel";
@@ -67,14 +75,20 @@ function App() {
   const [mapOpen, setMapOpen] = useState(false);
   // Visit map (bathroom_id → {count, lastVisited}). Updated on each GO tap.
   const [visits, setVisits] = useState(() => getAllVisits());
-  // Active filters
-  const [filters, setFilters] = useState({
+  // Persona — student / senior / default. Picked once on first visit.
+  // Drives sensible defaults for filters + gamification visibility.
+  const [persona, setPersonaState] = useState(() => getPersona());
+  const [personaPickerOpen, setPersonaPickerOpen] = useState(() => !hasPickedPersona());
+
+  // Active filters — initialized from persona defaults
+  const [filters, setFilters] = useState(() => ({
     accessible: false,
     unisex: false,
     free: false,
     openNow: false,
     singleOccupant: false,
-  });
+    ...getPersonaFilterDefaults(getPersona()),
+  }));
   // Achievement toast queue (shows one at a time)
   const [achievement, setAchievement] = useState(null);
   // Celebration overlay (fires after GO)
@@ -85,6 +99,19 @@ function App() {
   const [streak, setStreak] = useState(() => getStreak());
   // Online/offline status
   const isOnline = useOnline();
+  // Apply persona attribute on mount + on change
+  useEffect(() => {
+    document.documentElement.setAttribute("data-persona", persona);
+  }, [persona]);
+  // Handler for the picker
+  const onPersonaPick = (p) => {
+    savePersona(p);
+    setPersonaState(p);
+    // Merge persona-implied filter defaults onto current filters
+    setFilters((f) => ({ ...f, ...getPersonaFilterDefaults(p) }));
+    setPersonaPickerOpen(false);
+  };
+  const gamificationOn = showsGamification(persona);
   // Theme (default | midnight). Apply on mount.
   const [theme, setTheme] = useState(() => getTheme());
   useEffect(() => { applyTheme(theme); }, [theme]);
@@ -310,6 +337,10 @@ function App() {
     <div className="app">
       {!introDone && <IntroScreen onDone={() => setIntroDone(true)} />}
 
+      {introDone && personaPickerOpen && (
+        <PersonaPicker onPick={onPersonaPick} />
+      )}
+
       {/* Aurora blobs — decorative, pointer-events: none */}
       <div className="aurora" aria-hidden="true"><span /></div>
 
@@ -331,7 +362,7 @@ function App() {
               <span className="points-num">{points.total}</span>
             </div>
           )}
-          {streak.count > 0 && (
+          {gamificationOn && streak.count > 0 && (
             <div
               className={`streak-flame ${streak.isToday ? "streak-active" : "streak-stale"}`}
               title={`${streak.count}-day streak. Longest: ${streak.longest}`}
@@ -465,7 +496,7 @@ function App() {
           onRoulette={() => sorted.length >= 3 && handleRoulette(sorted[Math.floor(Math.random() * sorted.length)])}
         />
 
-        {sorted.length >= 3 && (
+        {gamificationOn && sorted.length >= 3 && (
           <RouletteButton candidates={sorted} onPick={handleRoulette} />
         )}
 
@@ -572,7 +603,7 @@ function App() {
       />
 
       <AchievementToast
-        achievement={achievement}
+        achievement={gamificationOn ? achievement : null}
         onDismiss={() => setAchievement(null)}
       />
 
