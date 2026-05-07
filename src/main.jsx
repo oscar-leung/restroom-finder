@@ -7,6 +7,9 @@ import { initAnalytics } from './utils/analytics.js'
 // Fire the GA4 loader (no-op if VITE_GA_ID is not set)
 initAnalytics()
 
+// Fire the AdSense loader (no-op if VITE_ADSENSE_CLIENT is not set)
+import("./services/adsense.js").then((m) => m.initAdSense?.())
+
 // Migrate any pre-IndexedDB photos to the new store. Idempotent + best-effort.
 import("./services/photos.js").then((m) => m.migrateLegacyPhotos?.());
 

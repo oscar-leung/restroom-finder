@@ -34,6 +34,7 @@ jobs:
       - run: npm run build
         env:
           VITE_GA_ID: ${{ secrets.VITE_GA_ID }}
+          VITE_ADSENSE_CLIENT: ${{ secrets.VITE_ADSENSE_CLIENT }}
 
       - uses: actions/configure-pages@v5
         with:
