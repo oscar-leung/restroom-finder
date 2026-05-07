@@ -6,6 +6,7 @@ import { distanceMeters } from "./utils/distance";
 import IntroScreen from "./components/IntroScreen";
 import LoadingGame from "./components/LoadingGame";
 import HeroStack from "./components/HeroStack";
+import SimpleHero from "./components/SimpleHero";
 import SearchBar from "./components/SearchBar";
 import CelebrationOverlay from "./components/CelebrationOverlay";
 import PersonaPicker from "./components/PersonaPicker";
@@ -112,6 +113,22 @@ function App() {
     setPersonaPickerOpen(false);
   };
   const gamificationOn = showsGamification(persona);
+
+  // Simple Mode — radically minimal hero. Default ON for new users
+  // per Oscar's product direction. Persists per device.
+  const [simpleMode, setSimpleMode] = useState(() => {
+    try {
+      const v = localStorage.getItem("gg_simple_mode_v1");
+      // Default to ON for new users (no value yet)
+      return v === null ? true : v === "true";
+    } catch { return true; }
+  });
+  const toggleSimpleMode = () => {
+    const next = !simpleMode;
+    setSimpleMode(next);
+    try { localStorage.setItem("gg_simple_mode_v1", String(next)); } catch {}
+    trackEvent("simple_mode_toggled", { on: next });
+  };
   // Theme (default | midnight). Apply on mount.
   const [theme, setTheme] = useState(() => getTheme());
   useEffect(() => { applyTheme(theme); }, [theme]);
@@ -467,20 +484,30 @@ function App() {
           )}
         </div>
 
-        <HeroStack
-          sorted={sorted}
-          heroIndex={safeIndex}
-          restroom={hero}
-          userPosition={position}
-          index={safeIndex}
-          total={sorted.length}
-          visitCount={hero ? visits[hero.id]?.count || 0 : 0}
-          onGo={() => handleGo(hero)}
-          onDetails={() => setDetailsOpen(hero)}
-          onNext={handleNext}
-          onPrev={handlePrev}
-          onShowRoute={() => setMapOpen(true)}
-        />
+        {simpleMode ? (
+          <SimpleHero
+            restroom={hero}
+            userPosition={position}
+            onGo={() => handleGo(hero)}
+            onNext={handleNext}
+            onShowMore={toggleSimpleMode}
+          />
+        ) : (
+          <HeroStack
+            sorted={sorted}
+            heroIndex={safeIndex}
+            restroom={hero}
+            userPosition={position}
+            index={safeIndex}
+            total={sorted.length}
+            visitCount={hero ? visits[hero.id]?.count || 0 : 0}
+            onGo={() => handleGo(hero)}
+            onDetails={() => setDetailsOpen(hero)}
+            onNext={handleNext}
+            onPrev={handlePrev}
+            onShowRoute={() => setMapOpen(true)}
+          />
+        )}
 
         <VoiceButton
           onGo={() => {

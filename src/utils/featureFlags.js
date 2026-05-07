@@ -53,6 +53,17 @@ export const FLAGS = {
     rollout: 0.5,
     default: "subtle",
   },
+  // Simple Mode hero variants — tested ONLY when user has opted in to
+  // simple mode. Three variants, evenly split. Measures: go_clicked rate.
+  //   minimal    — name + walk time + GO. Nothing else.
+  //   directional — minimal + compass arrow ("head NE").
+  //   dual-line  — minimal + tiny "Not it? Tap for next" link.
+  simple_hero_variant: {
+    description: "Layout of the simplified hero card",
+    variants: ["minimal", "directional", "dual-line"],
+    rollout: 1.0, // 100% of simple-mode users in the test
+    default: "minimal",
+  },
 };
 
 // ---- Visitor ID — stable across visits, anonymous ----------------
