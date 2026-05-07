@@ -182,46 +182,92 @@ const BRAND_ALLOWLIST = new Set([
   "sunkus",
 ]);
 
-// Tier of OSM tags we query. We treat each tier with a different
-// "comment" / fallback name for clearer UX:
-//   • food/coffee/gas → "Customer bathroom — buy something first"
-//   • hotel           → "Hotel lobby — bathrooms usually accessible"
-//   • mall/library/community → "Public restroom available"
-//   • university/college/school → "Open during business hours"
+// Tier of OSM tags we query. Each tier carries its own contextual
+// label so the UI can show "Hotel lobby" vs "Park restroom" vs
+// "Hospital" instead of one generic "Customer bathroom".
 const QUERY_TIERS = [
-  // Food / coffee / fuel — restricted to brand allow-list to avoid false positives
+  // Food / coffee / fuel — brand-gated to avoid bogus restaurant entries
   { tagKey: "amenity", tagValues: ["fast_food", "restaurant", "cafe", "fuel"], requireBrand: true,
     comment: "Customer bathroom — buy something first", note: "Customer bathroom" },
 
-  // Hotels — trust the OSM tag itself; lobby bathrooms are nearly universal
-  { tagKey: "tourism", tagValues: ["hotel", "motel", "hostel"], requireBrand: false,
+  // Hotels — lobby bathrooms are nearly universal even for non-guests
+  { tagKey: "tourism", tagValues: ["hotel", "motel", "hostel", "guest_house"], requireBrand: false,
     comment: "Hotel lobby — bathrooms usually accessible", note: "Hotel" },
 
-  // Malls + department stores — always have public restroom corridors
-  { tagKey: "shop",    tagValues: ["mall", "department_store"], requireBrand: false,
+  // Malls + department stores — public restroom corridors
+  { tagKey: "shop",    tagValues: ["mall", "department_store", "supermarket"], requireBrand: false,
     comment: "Public restroom corridor", note: "Mall" },
 
-  // Public services — libraries, community centers, civic
-  { tagKey: "amenity", tagValues: ["library", "community_centre", "townhall", "courthouse"], requireBrand: false,
+  // Civic / public services
+  { tagKey: "amenity", tagValues: ["library", "community_centre", "townhall", "courthouse", "post_office"], requireBrand: false,
     comment: "Public building — restrooms during open hours", note: "Public building" },
 
-  // Education
+  // Education (universities + colleges only — K-12 schools are not
+  // public-bathroom-accessible per safeguarding policy)
   { tagKey: "amenity", tagValues: ["university", "college"], requireBrand: false,
     comment: "Campus — student union / library bathrooms", note: "Campus" },
 
   // Recreation
-  { tagKey: "leisure", tagValues: ["fitness_centre", "sports_centre"], requireBrand: false,
+  { tagKey: "leisure", tagValues: ["fitness_centre", "sports_centre", "stadium"], requireBrand: false,
     comment: "Gym / sports center — member or day-pass", note: "Gym" },
+
+  // Parks + beaches — outdoor public restrooms common in larger ones
+  { tagKey: "leisure", tagValues: ["park", "nature_reserve"], requireBrand: false,
+    comment: "Park — restrooms in larger parks usually", note: "Park" },
+  { tagKey: "natural", tagValues: ["beach"], requireBrand: false,
+    comment: "Beach — public restrooms common at staffed beaches", note: "Beach" },
+
+  // Healthcare — hospitals always have lobby bathrooms; clinics often do
+  { tagKey: "amenity", tagValues: ["hospital", "clinic"], requireBrand: false,
+    comment: "Hospital lobby — restrooms accessible", note: "Hospital" },
+
+  // Worship — many places of worship are unlocked during the day with
+  // public restrooms (especially Catholic churches, mosques, gurdwaras)
+  { tagKey: "amenity", tagValues: ["place_of_worship"], requireBrand: false,
+    comment: "Place of worship — restrooms typically open during services", note: "Worship" },
+
+  // Transit hubs — train + bus stations + ferry terminals + airports
+  { tagKey: "railway", tagValues: ["station"], requireBrand: false,
+    comment: "Train station — public restrooms in main concourse", note: "Station" },
+  { tagKey: "amenity", tagValues: ["bus_station", "ferry_terminal"], requireBrand: false,
+    comment: "Transit terminal — public restrooms", note: "Transit" },
+  { tagKey: "aeroway", tagValues: ["aerodrome", "terminal"], requireBrand: false,
+    comment: "Airport — public restrooms throughout", note: "Airport" },
+
+  // Entertainment
+  { tagKey: "amenity", tagValues: ["cinema", "theatre", "nightclub", "casino", "arts_centre"], requireBrand: false,
+    comment: "Venue — patron restrooms during open hours", note: "Venue" },
+
+  // Visitor / rest stops — designated tourist info points + highway rest areas
+  { tagKey: "tourism", tagValues: ["information"], requireBrand: false,
+    comment: "Visitor center — restrooms typical", note: "Info" },
+  { tagKey: "highway", tagValues: ["services", "rest_area"], requireBrand: false,
+    comment: "Highway rest area — 24/7 public restrooms", note: "Rest area" },
 ];
 
 const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
-const RADIUS_M = 1500;
+const RADIUS_M = 2500; // bumped from 1500 — people drive to gas stations / malls
 
+/**
+ * Brand match: exact membership OR substring containment on key
+ * brand fragments. So OSM `brand="Union 76"` matches our "76", and
+ * `name="McDonald's Drive-Thru"` matches "mcdonald's".
+ */
 function brandAllowed(t) {
   const candidates = [t.brand, t.name, t.operator]
     .filter(Boolean)
     .map((s) => s.toLowerCase().trim());
-  return candidates.some((c) => BRAND_ALLOWLIST.has(c));
+  if (candidates.length === 0) return false;
+  // Exact match first (cheap)
+  if (candidates.some((c) => BRAND_ALLOWLIST.has(c))) return true;
+  // Substring fallback — only for short, distinctive brands. Common
+  // case: "Union 76" → "76", "McDonald's Drive-Thru" → "mcdonald's"
+  for (const c of candidates) {
+    for (const allowed of BRAND_ALLOWLIST) {
+      if (allowed.length >= 4 && c.includes(allowed)) return true;
+    }
+  }
+  return false;
 }
 
 function buildQuery(lat, lng) {
