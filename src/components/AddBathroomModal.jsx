@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { addUserBathroom, refugeSubmitUrl } from "../services/userBathrooms";
 import { contributeToRefuge } from "../services/refugeContribute";
+import { reverseGeocode } from "../services/geocoder";
 import { trackEvent } from "../utils/analytics";
 
 /**
@@ -23,6 +24,27 @@ export default function AddBathroomModal({ position, onClose, onAdded }) {
   const [shareUpstream, setShareUpstream] = useState(true); // default ON — community good
   const [submitted, setSubmitted] = useState(null);
   const [upstreamStatus, setUpstreamStatus] = useState(null); // "pending" | "ok" | "error"
+
+  // "Snap to nearest place" — direct response to user feedback that
+  // most contributors don't know exact addresses. We reverse-geocode
+  // their GPS via Nominatim and offer the result as a one-tap fill.
+  const [nearby, setNearby] = useState(null); // { displayName, city, neighborhood }
+  useEffect(() => {
+    if (!position) return;
+    let cancelled = false;
+    reverseGeocode(position.latitude, position.longitude).then((res) => {
+      if (!cancelled) setNearby(res);
+    });
+    return () => { cancelled = true; };
+  }, [position?.latitude, position?.longitude]);
+
+  const useNearbyName = () => {
+    if (!nearby?.displayName) return;
+    // Use just the first 2 segments — "Starbucks, 123 Main St" not the whole "city, state, country"
+    const short = nearby.displayName.split(",").slice(0, 2).join(",").trim();
+    setName(short);
+    trackEvent("snap_to_nearby_used");
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -79,6 +101,22 @@ export default function AddBathroomModal({ position, onClose, onAdded }) {
               📍 Using your current location ({position?.latitude.toFixed(5)},{" "}
               {position?.longitude.toFixed(5)})
             </p>
+
+            {nearby?.displayName && (
+              <button
+                type="button"
+                className="snap-suggestion"
+                onClick={useNearbyName}
+                title="Use the nearest place's name"
+              >
+                <span className="snap-icon" aria-hidden="true">📌</span>
+                <span className="snap-text">
+                  <span className="snap-label">Nearest place:</span>{" "}
+                  <strong>{nearby.displayName.split(",").slice(0, 2).join(",")}</strong>
+                </span>
+                <span className="snap-cta">use →</span>
+              </button>
+            )}
 
             <form className="add-form" onSubmit={submit}>
               <div className="add-form-field">
