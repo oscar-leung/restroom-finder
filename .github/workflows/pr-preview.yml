@@ -58,7 +58,7 @@ jobs:
       # preview URL, swap in `cloudflare/pages-action`, `nwtgck/actions-netlify`,
       # or `surge.sh` here — they all accept dist/ and return a URL.
       - name: Sticky preview comment
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         with:
           header: pr-preview
           message: |
