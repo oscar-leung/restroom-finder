@@ -3,6 +3,7 @@ import { walkingMinutes } from "../services/comfort";
 import { bearing, bearingToCardinal } from "../services/routing";
 import { trackEvent } from "../utils/analytics";
 import { getFlag } from "../utils/featureFlags";
+import { isOpenNow } from "../utils/hours";
 
 /**
  * SimpleHero — the radically minimal hero for Simple Mode.
@@ -35,6 +36,22 @@ export default function SimpleHero({
 
   const variant = getFlag("simple_hero_variant");
   const walk = walkingMinutes(restroom.distance);
+
+  // Trust signals previewed BEFORE the user commits to launching directions.
+  // Even in Simple Mode, people want to know "is it open, is it free, can I
+  // actually use it" before they walk there. Keep it to the few that matter.
+  const { isOpen, knownStatus } = isOpenNow(restroom.opening_hours);
+  const signals = [];
+  if (knownStatus) {
+    signals.push(
+      isOpen
+        ? { key: "open", cls: "open", label: "🟢 Open now" }
+        : { key: "closed", cls: "closed", label: "🔴 Closed" }
+    );
+  }
+  if (restroom.fee === false) signals.push({ key: "free", cls: "free", label: "Free" });
+  if (restroom.accessible) signals.push({ key: "accessible", cls: "accessible", label: "♿ Accessible" });
+  if (restroom.unisex) signals.push({ key: "unisex", cls: "unisex", label: "⚧ Gender-neutral" });
   const cardinal =
     userPosition && restroom.latitude
       ? bearingToCardinal(
@@ -56,6 +73,10 @@ export default function SimpleHero({
       mode: "simple",
       variant,
       distance_m: Math.round(restroom.distance),
+      open_status: knownStatus ? (isOpen ? "open" : "closed") : "unknown",
+      free: restroom.fee === false,
+      accessible: !!restroom.accessible,
+      unisex: !!restroom.unisex,
     });
     onGo?.();
   };
@@ -77,6 +98,16 @@ export default function SimpleHero({
           </>
         )}
       </div>
+
+      {signals.length > 0 && (
+        <div className="simple-signals">
+          {signals.map((s) => (
+            <span key={s.key} className={`simple-badge simple-badge-${s.cls}`}>
+              {s.label}
+            </span>
+          ))}
+        </div>
+      )}
 
       <a
         className="simple-go"

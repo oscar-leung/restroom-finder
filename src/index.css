@@ -3292,6 +3292,30 @@ body {
   opacity: 0.4;
   font-weight: 700;
 }
+/* Trust-signal pills shown above GO so people can vet the pick in a hurry */
+.simple-signals {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: -16px 0 28px;
+}
+.simple-badge {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--bg-muted);
+  color: var(--text);
+  white-space: nowrap;
+}
+.simple-badge-open      { background: #d1fae5; color: #065f46; }
+.simple-badge-closed    { background: #fee2e2; color: #991b1b; }
+.simple-badge-free      { background: #d1fae5; color: #065f46; }
+.simple-badge-accessible{ background: #dbeafe; color: #1e40af; }
+.simple-badge-unisex    { background: #ede9fe; color: #5b21b6; }
+[data-persona="senior"] .simple-badge { font-size: 15px; padding: 7px 14px; }
+
 .simple-go {
   display: flex;
   align-items: center;
@@ -3361,6 +3385,14 @@ body {
 [data-theme="midnight"] .simple-distance {
   color: #00f0ff;
   text-shadow: 0 0 6px rgba(0, 240, 255, 0.6);
+}
+[data-theme="midnight"] .simple-badge {
+  background: rgba(0, 240, 255, 0.12);
+  color: #cdefff;
+}
+[data-theme="midnight"] .simple-badge-closed {
+  background: rgba(255, 60, 80, 0.18);
+  color: #ffb3bd;
 }
 [data-theme="midnight"] .simple-go {
   background: linear-gradient(135deg, #00f0ff, #b026ff);
