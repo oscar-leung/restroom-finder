@@ -35,12 +35,36 @@ export default function VoiceButton({
 
   const supported = !!SpeechRecognition;
 
+  // App passes fresh arrow-function callbacks every render; keeping the
+  // latest set in a ref (updated in an effect) lets the recognizer be
+  // created ONCE instead of torn down per render.
+  const handlersRef = useRef({});
+  useEffect(() => {
+    handlersRef.current = { onGo, onNext, onOpenMap, onAddBathroom, onRoulette };
+  }, [onGo, onNext, onOpenMap, onAddBathroom, onRoulette]);
+
   useEffect(() => {
     if (!supported) return;
     const rec = new SpeechRecognition();
     rec.lang = "en-US";
     rec.continuous = false;
     rec.interimResults = true;
+
+    const handleCommand = (text) => {
+      trackEvent("voice_command", { transcript: text });
+      const h = handlersRef.current;
+      if (/(find|where|nearest|closest|nearby).*?(bathroom|restroom|toilet|loo)/.test(text)) {
+        h.onGo?.();
+      } else if (/(next|another|skip)/.test(text)) {
+        h.onNext?.();
+      } else if (/(show|open).*map/.test(text)) {
+        h.onOpenMap?.();
+      } else if (/add.*(bathroom|restroom|toilet)/.test(text)) {
+        h.onAddBathroom?.();
+      } else if (/(random|surprise|something new)/.test(text)) {
+        h.onRoulette?.();
+      }
+    };
 
     rec.onresult = (e) => {
       const last = e.results[e.results.length - 1];
@@ -53,24 +77,9 @@ export default function VoiceButton({
 
     recRef.current = rec;
     return () => {
-      try { rec.abort(); } catch {}
+      try { rec.abort(); } catch { /* already stopped */ }
     };
   }, [supported]);
-
-  const handleCommand = (text) => {
-    trackEvent("voice_command", { transcript: text });
-    if (/(find|where|nearest|closest|nearby).*?(bathroom|restroom|toilet|loo)/.test(text)) {
-      onGo?.();
-    } else if (/(next|another|skip)/.test(text)) {
-      onNext?.();
-    } else if (/(show|open).*map/.test(text)) {
-      onOpenMap?.();
-    } else if (/add.*(bathroom|restroom|toilet)/.test(text)) {
-      onAddBathroom?.();
-    } else if (/(random|surprise|something new)/.test(text)) {
-      onRoulette?.();
-    }
-  };
 
   const toggle = () => {
     if (!supported) return;

@@ -44,26 +44,23 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
   const [remoteReports, setRemoteReports] = useState(null);
   const [goCount, setGoCount] = useState(null);
 
+  // App keys this component by restroom id, so every open is a fresh
+  // mount and the useState initializers above do the synchronous
+  // hydration. This effect only loads the async sources.
   useEffect(() => {
-    if (restroom) {
-      setCleaning(getCleaningLog(restroom.id));
-      setFavorited(isFavorite(restroom.id));
-      setBathState(getBathroomState(restroom.id));
-      // photos are async (IndexedDB)
-      let cancelled = false;
-      getPhotos(restroom.id).then((p) => { if (!cancelled) setPhotos(p); });
-      setRemoteReports(null);
-      setGoCount(null);
-      if (isBackendOn()) {
-        fetchRemoteReports(restroom.id).then((r) => {
-          if (!cancelled && r && Object.keys(r.counts || {}).length) setRemoteReports(r);
-        });
-        fetchPopularity([restroom.id]).then((p) => {
-          if (!cancelled && p[restroom.id] >= 2) setGoCount(p[restroom.id]);
-        });
-      }
-      return () => { cancelled = true; };
+    if (!restroom) return;
+    let cancelled = false;
+    // photos are async (IndexedDB)
+    getPhotos(restroom.id).then((p) => { if (!cancelled) setPhotos(p); });
+    if (isBackendOn()) {
+      fetchRemoteReports(restroom.id).then((r) => {
+        if (!cancelled && r && Object.keys(r.counts || {}).length) setRemoteReports(r);
+      });
+      fetchPopularity([restroom.id]).then((p) => {
+        if (!cancelled && p[restroom.id] >= 2) setGoCount(p[restroom.id]);
+      });
     }
+    return () => { cancelled = true; };
   }, [restroom]);
 
   const onReport = (type) => {

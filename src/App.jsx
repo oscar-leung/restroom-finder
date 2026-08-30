@@ -71,10 +71,15 @@ function App() {
   const usingSearchedLocation = !!searchedLocation;
 
   // --- Restrooms ---
-  const [restrooms, setRestrooms] = useState([]);
+  // Fetch state is keyed by the position it was fetched FOR, so
+  // loading/error are derived instead of synced in the effect
+  // (react-hooks/set-state-in-effect): a stale key = load in flight.
+  const posKey = position ? `${position.latitude},${position.longitude}` : null;
+  const [fetchState, setFetchState] = useState({ key: null, data: [], error: null });
+  const restrooms = fetchState.data;
+  const apiError = fetchState.key === posKey ? fetchState.error : null;
+  const apiLoading = !!posKey && fetchState.key !== posKey;
   const [userBathrooms, setUserBathrooms] = useState(() => getUserBathrooms());
-  const [apiError, setApiError] = useState(null);
-  const [apiLoading, setApiLoading] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
 
   // --- UI state ---
@@ -159,14 +164,14 @@ function App() {
   // "Doesn't exist" suppressions can change while the details modal is
   // open — bump this to re-filter the list after it closes.
   const [suppressedTick, setSuppressedTick] = useState(0);
-  // Refresh points + suppressions when details modal closes (in case
-  // condition reports happened inside it)
-  useEffect(() => {
-    if (!detailsOpen) {
-      setPoints(getPoints());
-      setSuppressedTick((t) => t + 1);
-    }
-  }, [detailsOpen]);
+  // Closing the details modal refreshes points + suppressions (condition
+  // reports may have happened inside it) — as an event handler, not an
+  // effect, so there's no cascading render.
+  const closeDetails = () => {
+    setDetailsOpen(null);
+    setPoints(getPoints());
+    setSuppressedTick((t) => t + 1);
+  };
   const onToggleTheme = () => {
     const next = toggleTheme();
     setTheme(next);
@@ -177,21 +182,21 @@ function App() {
   const { record: recordUsage, hint: usageHint, inTypicalWindow } =
     useUsagePatterns();
 
-  // Fetch when position resolves
+  // Fetch when position resolves. Only async setState here; a response
+  // for a position we've since moved away from is dropped.
   useEffect(() => {
-    if (!position) return;
-    setApiLoading(true);
-    setApiError(null);
-    fetchNearbyRestrooms(position.latitude, position.longitude)
+    if (!posKey) return;
+    const [lat, lng] = posKey.split(",").map(Number);
+    let cancelled = false;
+    fetchNearbyRestrooms(lat, lng)
       .then((data) => {
-        setRestrooms(data);
-        setApiLoading(false);
+        if (!cancelled) setFetchState({ key: posKey, data, error: null });
       })
       .catch((err) => {
-        setApiError(err.message);
-        setApiLoading(false);
+        if (!cancelled) setFetchState((s) => ({ key: posKey, data: s.data, error: err.message }));
       });
-  }, [position?.latitude, position?.longitude]);
+    return () => { cancelled = true; };
+  }, [posKey]);
 
   // Merge API + user-added, attach distance, apply filters, sort by distance.
   const sorted = useMemo(() => {
@@ -720,9 +725,10 @@ function App() {
       )}
 
       <RestroomPanel
+        key={detailsOpen?.id || "none"}
         restroom={detailsOpen}
         visitRecord={detailsOpen ? visits[detailsOpen.id] : null}
-        onClose={() => setDetailsOpen(null)}
+        onClose={closeDetails}
         onAchievement={(a) => setAchievement(a)}
       />
 
@@ -731,13 +737,15 @@ function App() {
         onDismiss={() => setAchievement(null)}
       />
 
-      <CelebrationOverlay
-        isOpen={!!celebration}
-        bathroomName={celebration?.bathroomName}
-        pointsEarned={celebration?.pointsEarned}
-        streakCount={celebration?.streakCount}
-        onDone={() => setCelebration(null)}
-      />
+      {celebration && (
+        <CelebrationOverlay
+          isOpen
+          bathroomName={celebration.bathroomName}
+          pointsEarned={celebration.pointsEarned}
+          streakCount={celebration.streakCount}
+          onDone={() => setCelebration(null)}
+        />
+      )}
 
       {addOpen && (
         <AddBathroomModal

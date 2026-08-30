@@ -81,7 +81,11 @@ function RecenterMap({ center, trigger }) {
   useEffect(() => {
     if (!center) return;
     map.flyTo(center, 16, { duration: 0.6 });
-  }, [trigger]); // re-run when trigger changes (e.g. user taps pin or locate btn)
+    // Intentionally NOT depending on center/map: recentering on every
+    // GPS jitter would fight the user's panning. Only an explicit
+    // trigger bump (pin tap, "Near me") flies the camera.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trigger]);
   return null;
 }
 
@@ -108,21 +112,27 @@ export default function MapView({
 
   // Real walking-route via OSRM (polyline + turn-by-turn steps).
   // Falls back to straight line if OSRM fails or returns nothing.
-  const [route, setRoute] = useState(null);
+  // Keyed by (selection, origin) so a stale route never renders and the
+  // effect needs no synchronous reset.
+  const sel = restrooms.find((r) => r.id === selectedId);
+  const routeKey = sel
+    ? `${sel.id}|${position.latitude},${position.longitude}`
+    : null;
+  const [routeState, setRouteState] = useState({ key: null, route: null });
+  const selLat = sel?.latitude;
+  const selLng = sel?.longitude;
   useEffect(() => {
+    if (!routeKey) return;
     let cancelled = false;
-    setRoute(null);
-    const sel = restrooms.find((r) => r.id === selectedId);
-    if (!sel) return;
-    fetchWalkingRoute(
-      { lat: position.latitude, lng: position.longitude },
-      { lat: sel.latitude, lng: sel.longitude }
-    ).then((res) => {
+    const [, origin] = routeKey.split("|");
+    const [lat, lng] = origin.split(",").map(Number);
+    fetchWalkingRoute({ lat, lng }, { lat: selLat, lng: selLng }).then((res) => {
       if (cancelled || !res) return;
-      setRoute(res);
+      setRouteState({ key: routeKey, route: res });
     });
     return () => { cancelled = true; };
-  }, [selectedId, position.latitude, position.longitude]);
+  }, [routeKey, selLat, selLng]);
+  const route = routeState.key === routeKey ? routeState.route : null;
   const routeCoords = route?.coordinates || null;
 
   return (
@@ -149,7 +159,6 @@ export default function MapView({
             We try OSRM (real walking path) first; while it's loading or
             if it fails, show the straight-line fallback. */}
         {(() => {
-          const sel = restrooms.find((r) => r.id === selectedId);
           if (!sel) return null;
           const useReal = routeCoords && routeCoords.length > 1;
           const positions = useReal

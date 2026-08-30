@@ -14,16 +14,18 @@ export default function useGeolocation() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Wrap in useCallback so the reference is stable (safe to put in deps)
-  const getLocation = useCallback(() => {
+  // The subscription itself: registers browser callbacks and a soft
+  // timeout, but flips NO state synchronously — `loading` starts true
+  // on mount, and `refresh` (an event handler) flips it for re-requests.
+  const locate = useCallback(() => {
     if (!navigator.geolocation) {
-      setError("Geolocation is not supported by your browser.");
-      setLoading(false);
+      // Async so the mount-effect body stays setState-free
+      setTimeout(() => {
+        setError("Geolocation is not supported by your browser.");
+        setLoading(false);
+      }, 0);
       return;
     }
-
-    setLoading(true);
-    setError(null);
 
     // Soft timeout: some browsers (and headless previews) never fire either
     // callback if the user doesn't interact with the permission prompt.
@@ -58,10 +60,18 @@ export default function useGeolocation() {
     );
   }, []);
 
-  // Kick off on mount
-  useEffect(() => {
-    getLocation();
-  }, [getLocation]);
+  // Re-request from a user action (the ↻ button): flip the flags in the
+  // event handler, then re-subscribe.
+  const refresh = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    locate();
+  }, [locate]);
 
-  return { position, error, loading, refresh: getLocation };
+  // Kick off on mount — loading already initialized true
+  useEffect(() => {
+    locate();
+  }, [locate]);
+
+  return { position, error, loading, refresh };
 }

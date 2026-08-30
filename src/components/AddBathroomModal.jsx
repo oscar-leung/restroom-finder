@@ -29,14 +29,16 @@ export default function AddBathroomModal({ position, onClose, onAdded }) {
   // most contributors don't know exact addresses. We reverse-geocode
   // their GPS via Nominatim and offer the result as a one-tap fill.
   const [nearby, setNearby] = useState(null); // { displayName, city, neighborhood }
+  const posLat = position?.latitude;
+  const posLng = position?.longitude;
   useEffect(() => {
-    if (!position) return;
+    if (posLat == null || posLng == null) return;
     let cancelled = false;
-    reverseGeocode(position.latitude, position.longitude).then((res) => {
+    reverseGeocode(posLat, posLng).then((res) => {
       if (!cancelled) setNearby(res);
     });
     return () => { cancelled = true; };
-  }, [position?.latitude, position?.longitude]);
+  }, [posLat, posLng]);
 
   const useNearbyName = () => {
     if (!nearby?.displayName) return;
