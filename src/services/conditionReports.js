@@ -130,8 +130,11 @@ export function getConditionWarning(bathroomId) {
   const negatives = recent.filter((r) => (REPORT_TYPES[r.type]?.weight ?? 0) < 0);
   if (!negatives.length) return null;
   const newestNegativeTs = Math.max(...negatives.map((r) => +new Date(r.ts)));
+  // >= not >: reports filed in the same millisecond (burst-tapping the
+  // buttons) still count the clean as the later signal — the reports
+  // list is newest-first, so a same-ts clean was filed after.
   const clearedBy = recent.some(
-    (r) => r.type === "clean" && +new Date(r.ts) > newestNegativeTs
+    (r) => r.type === "clean" && +new Date(r.ts) >= newestNegativeTs
   );
   if (clearedBy) return null;
   negatives.sort(
