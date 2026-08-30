@@ -89,6 +89,8 @@ function App() {
     free: false,
     openNow: false,
     singleOccupant: false,
+    bench: false,
+    noStairs: false,
     ...getPersonaFilterDefaults(getPersona()),
   }));
   // Achievement toast queue (shows one at a time)
@@ -201,6 +203,11 @@ function App() {
       })
       // Private (single-occupant) chip: only show entries we KNOW are private.
       .filter((r) => !filters.singleOccupant || r.single_occupant === true)
+      // Bench chip: only entries with a bench within resting range (OSM data).
+      .filter((r) => !filters.bench || r.near_bench === true)
+      // No-stairs chip: lenient like Free — hide entries we KNOW are on
+      // another floor or underground; unknown stays visible.
+      .filter((r) => !filters.noStairs || r.ground_floor !== false)
       .sort((a, b) => a.distance - b.distance);
   }, [restrooms, userBathrooms, position, filters]);
 

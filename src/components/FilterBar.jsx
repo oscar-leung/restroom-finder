@@ -65,6 +65,26 @@ export default function FilterBar({ filters, onChange, onLocate }) {
         Private
       </button>
 
+      <button
+        className={`chip ${filters.bench ? "chip-active" : ""}`}
+        onClick={() => toggle("bench")}
+        aria-pressed={!!filters.bench}
+        title="Only show bathrooms with a bench within 60m — somewhere to rest on the way"
+      >
+        <span className="chip-icon" aria-hidden="true">🪑</span>
+        Bench nearby
+      </button>
+
+      <button
+        className={`chip ${filters.noStairs ? "chip-active" : ""}`}
+        onClick={() => toggle("noStairs")}
+        aria-pressed={!!filters.noStairs}
+        title="Hide bathrooms known to be on another floor or underground"
+      >
+        <span className="chip-icon" aria-hidden="true">🚷</span>
+        No stairs
+      </button>
+
       <button className="chip chip-locate" onClick={onLocate} title="Recenter on my location">
         <span className="chip-icon" aria-hidden="true">📍</span>
         Near me
