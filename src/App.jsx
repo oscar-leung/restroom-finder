@@ -11,6 +11,8 @@ import SearchBar from "./components/SearchBar";
 import CelebrationOverlay from "./components/CelebrationOverlay";
 import PersonaPicker from "./components/PersonaPicker";
 import useOnline from "./hooks/useOnline";
+import useInstallPrompt from "./hooks/useInstallPrompt";
+import InstallPrompt from "./components/InstallPrompt";
 import {
   getPersona,
   hasPickedPersona,
@@ -29,7 +31,6 @@ import AchievementToast from "./components/AchievementToast";
 import VoiceButton from "./components/VoiceButton";
 import { getUserBathrooms } from "./services/userBathrooms";
 import { recordVisit, getAllVisits } from "./services/visitTracker";
-import { getFavorites } from "./services/favorites";
 import { tryUnlock } from "./services/achievements";
 import { touchStreak, getStreak } from "./services/streak";
 import { getTheme, applyTheme, toggleTheme } from "./services/theme";
@@ -100,6 +101,8 @@ function App() {
   const [streak, setStreak] = useState(() => getStreak());
   // Online/offline status
   const isOnline = useOnline();
+  // PWA install nudge — appears from the 2nd distinct-day visit
+  const installPrompt = useInstallPrompt();
   // Apply persona attribute on mount + on change
   useEffect(() => {
     document.documentElement.setAttribute("data-persona", persona);
@@ -582,6 +585,14 @@ function App() {
         </p>
       </main>
 
+      {installPrompt.visible && !mapOpen && (
+        <InstallPrompt
+          mode={installPrompt.mode}
+          onInstall={installPrompt.install}
+          onDismiss={installPrompt.dismiss}
+        />
+      )}
+
       {/* Floating Map pill — Airbnb-style "see results on map" */}
       {!mapOpen && sorted.length > 0 && (
         <button
@@ -646,7 +657,7 @@ function App() {
         <AddBathroomModal
           position={geoPosition}
           onClose={() => setAddOpen(false)}
-          onAdded={(entry) => {
+          onAdded={() => {
             const updated = getUserBathrooms();
             setUserBathrooms(updated);
             setHeroIndex(0);

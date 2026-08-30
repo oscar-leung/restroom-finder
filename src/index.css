@@ -3456,3 +3456,80 @@ body {
   letter-spacing: 0.5px;
   flex-shrink: 0;
 }
+
+/* ===== PWA install prompt ===== */
+.install-prompt {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + var(--safe-bottom));
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  animation: install-slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes install-slide-up {
+  from { transform: translateY(120%); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+.install-prompt-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+.install-prompt-icon { font-size: 26px; flex-shrink: 0; }
+.install-prompt-text strong {
+  display: block;
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.install-prompt-text p {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+.install-share-glyph {
+  display: inline-block;
+  transform: rotate(-90deg);
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+.install-prompt-cta {
+  flex-shrink: 0;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white;
+  border: none;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.install-prompt-cta:active { transform: scale(0.96); }
+.install-prompt-close {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  min-width: 28px;
+  min-height: 28px;
+}
+[data-theme="midnight"] .install-prompt {
+  background: var(--bg-muted);
+  border-color: var(--border);
+}
