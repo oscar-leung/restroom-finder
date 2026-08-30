@@ -33,7 +33,7 @@ function buildQuery(lat, lng, radiusKm) {
 
 function parseCoord(literal) {
   // "Point(-122.4194 37.7749)" → { lat: 37.7749, lng: -122.4194 }
-  const m = /Point\(([\-0-9.]+)\s+([\-0-9.]+)\)/.exec(literal);
+  const m = /Point\((-?[0-9.]+)\s+(-?[0-9.]+)\)/.exec(literal);
   if (!m) return null;
   return { lng: Number(m[1]), lat: Number(m[2]) };
 }

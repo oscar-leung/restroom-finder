@@ -30,10 +30,9 @@ export default function RouletteButton({ candidates, onPick }) {
     const teaseDuration = 600;
     const tickMs = 80;
     const ticks = Math.floor(teaseDuration / tickMs);
+    // We could show a visual reel of candidates flipping by here; for
+    // v1 we just spin the icon for the tease window and reveal at the end.
     for (let i = 0; i < ticks; i++) {
-      const teaser = candidates[Math.floor(Math.random() * candidates.length)];
-      // We could update an internal "currently displaying" state here for a
-      // visual reel; for v1 we just spin the icon and reveal at the end.
       await new Promise((r) => setTimeout(r, tickMs));
     }
 

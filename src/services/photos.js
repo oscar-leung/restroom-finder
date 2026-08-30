@@ -1,4 +1,4 @@
-import { get, set, del, keys } from "idb-keyval";
+import { get, set, del } from "idb-keyval";
 
 /**
  * Photo storage — now backed by IndexedDB (via idb-keyval).

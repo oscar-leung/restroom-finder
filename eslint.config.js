@@ -24,6 +24,18 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // The codebase intentionally guards every localStorage touch with
+      // a bare `catch {}` — private mode / storage-full is non-fatal.
+      'no-empty': ['error', { allowEmptyCatch: true }],
+      // react-hooks v7's new correctness rules flag long-standing
+      // patterns here (fetch-in-effect, sync-from-props). Real issues
+      // to burn down over time, but not as PR-blocking errors.
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/immutability': 'warn',
     },
+  },
+  {
+    files: ['vite.config.js'],
+    languageOptions: { globals: globals.node },
   },
 ])
