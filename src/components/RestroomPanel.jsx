@@ -11,7 +11,7 @@ import { FIXTURE_FIELDS, getFixtureEdits, saveFixtureEdits, getMergedFixtures } 
 import { trackEvent } from "../utils/analytics";
 import Reviews from "./Reviews";
 import { useI18n } from "../i18n";
-import { isBackendOn, fetchRemoteReports } from "../services/backend";
+import { isBackendOn, fetchRemoteReports, fetchPopularity } from "../services/backend";
 
 /**
  * RestroomPanel — full details modal for a selected restroom.
@@ -40,8 +40,9 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
   const [fixtureSavedAt, setFixtureSavedAt] = useState(0); // bump to re-read merged view
   const fileRef = useRef(null);
 
-  // Cross-user reports from the backend (null until it's deployed)
+  // Cross-user reports + GO count from the backend (null until deployed)
   const [remoteReports, setRemoteReports] = useState(null);
+  const [goCount, setGoCount] = useState(null);
 
   useEffect(() => {
     if (restroom) {
@@ -52,9 +53,13 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
       let cancelled = false;
       getPhotos(restroom.id).then((p) => { if (!cancelled) setPhotos(p); });
       setRemoteReports(null);
+      setGoCount(null);
       if (isBackendOn()) {
         fetchRemoteReports(restroom.id).then((r) => {
           if (!cancelled && r && Object.keys(r.counts || {}).length) setRemoteReports(r);
+        });
+        fetchPopularity([restroom.id]).then((p) => {
+          if (!cancelled && p[restroom.id] >= 2) setGoCount(p[restroom.id]);
         });
       }
       return () => { cancelled = true; };
@@ -163,6 +168,11 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
           {score !== 0 && (
             <span className="meta-item">
               {score > 0 ? "👍" : "👎"} {Math.abs(score)}
+            </span>
+          )}
+          {goCount != null && (
+            <span className="meta-item" title="Anonymous GO taps across all users">
+              <span aria-hidden="true">🔥</span> {goCount}× GO
             </span>
           )}
           {visitRecord && visitRecord.count > 0 && (
