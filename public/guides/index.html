@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guides &mdash; Gotta Go</title>
+  <meta name="description" content="Practical guides to finding public restrooms: city guides, restroom access laws, road trips, traveling with IBD, and parenting survival tips." />
+  <meta name="theme-color" content="#8b5cf6" />
+  <link rel="canonical" href="https://oscar-leung.github.io/restroom-finder/guides/index.html" />
+  <meta property="og:title" content="Gotta Go Guides" />
+  <meta property="og:description" content="Practical guides to finding and using public restrooms in the US." />
+  <meta property="og:url" content="https://oscar-leung.github.io/restroom-finder/guides/index.html" />
+  <link rel="icon" href="../icon-192.svg" type="image/svg+xml" />
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "CollectionPage", "name": "Gotta Go Guides", "description": "Practical guides to finding and using public restrooms in the US.", "url": "https://oscar-leung.github.io/restroom-finder/guides/index.html"}</script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #8b5cf6; --primary-dark: #7c3aed; --accent: #ec4899;
+      --text: #0f172a; --text-muted: #64748b; --bg-soft: #fafaff;
+      --border: #e2e8f0; --radius: 16px;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+      color: var(--text); line-height: 1.65;
+      background:
+        radial-gradient(1100px 700px at 90% -10%, rgba(236,72,153,.08), transparent 55%),
+        radial-gradient(900px 600px at -10% 20%, rgba(139,92,246,.08), transparent 55%),
+        var(--bg-soft);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--primary-dark); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+    .logo { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; letter-spacing: -.4px; color: var(--text); }
+    .logo img { width: 32px; height: 32px; border-radius: 8px; }
+    .nav-links { display: flex; gap: 20px; align-items: center; font-size: 14px; }
+    .nav-links a { color: var(--text-muted); }
+    .nav-cta {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff !important; padding: 9px 18px; border-radius: 999px;
+      font-weight: 600; box-shadow: 0 6px 20px rgba(139,92,246,.25);
+    }
+    .nav-cta:hover { text-decoration: none; }
+    article { background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+      padding: clamp(24px, 5vw, 56px); margin: 16px 0 40px; box-shadow: 0 1px 3px rgba(15,23,42,.05); }
+    article h1 { font-size: clamp(28px, 4.5vw, 40px); letter-spacing: -1px; line-height: 1.15; margin-bottom: 14px; }
+    article h2 { font-size: clamp(21px, 3vw, 26px); letter-spacing: -.5px; margin: 36px 0 12px; }
+    article h3 { font-size: 17px; margin: 22px 0 8px; }
+    article p { margin: 0 0 16px; color: #1e293b; }
+    article ul, article ol { margin: 0 0 16px 22px; }
+    article li { margin-bottom: 6px; }
+    article em { color: var(--text-muted); }
+    article table { width: 100%; border-collapse: collapse; margin: 0 0 20px; font-size: 15px; }
+    article th, article td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    article th { color: var(--text-muted); font-size: 13px; text-transform: uppercase; letter-spacing: .4px; }
+    .crumbs { font-size: 13px; color: var(--text-muted); margin: 8px 0 0; }
+    .cta-box { margin: 36px 0 8px; padding: 22px; border-radius: 12px; text-align: center;
+      background: linear-gradient(135deg, rgba(139,92,246,.08), rgba(236,72,153,.08));
+      border: 1px solid var(--border); }
+    .cta-box a.btn { display: inline-block; margin-top: 10px; background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff; padding: 12px 26px; border-radius: 999px; font-weight: 700; }
+    footer { padding: 26px 0 44px; font-size: 13px; color: var(--text-muted); text-align: center; }
+    footer a { color: var(--text-muted); margin: 0 8px; }
+
+    .grid { display: grid; gap: 16px; margin: 24px 0 40px; }
+    .card { display: block; background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 24px; color: var(--text); box-shadow: 0 1px 3px rgba(15,23,42,.05); }
+    .card:hover { text-decoration: none; border-color: var(--primary); }
+    .card h2 { font-size: 19px; letter-spacing: -.4px; margin-bottom: 6px; }
+    .card p { color: var(--text-muted); font-size: 14.5px; margin-bottom: 10px; }
+    .card .more { color: var(--primary-dark); font-weight: 600; font-size: 14px; }
+    .pagehead { padding: 28px 0 4px; }
+    .pagehead h1 { font-size: clamp(30px, 5vw, 44px); letter-spacing: -1px; }
+    .pagehead p { color: var(--text-muted); margin-top: 8px; max-width: 560px; }
+  </style>
+</head>
+<body>
+<nav class="wrap">
+  <a class="logo" href="../about.html"><img src="../icon-192.svg" alt="" /> Gotta Go</a>
+  <div class="nav-links">
+    <a href="./index.html">Guides</a>
+    <a href="../about.html">About</a>
+    <a class="nav-cta" href="../index.html">Open the app</a>
+  </div>
+</nav>
+<main class="wrap">
+  <div class="pagehead">
+    <h1>Guides</h1>
+    <p>Everything we know about finding (and gracefully using) public restrooms in the US &mdash; from the people who built an app about it.</p>
+  </div>
+  <div class="grid">
+  <a class="card" href="./restroom-access-laws.html">
+    <h2>Restroom Access Laws in the US: Ally&#x27;s Law, State by State</h2>
+    <p>What the Restroom Access Act (Ally&#x27;s Law) actually requires, which states have it, who qualifies, and what to do if you&#x27;re refused.</p>
+    <span class="more">Read the guide &rarr;</span>
+  </a>
+  <a class="card" href="./public-restrooms-san-francisco.html">
+    <h2>Where to Find Public Restrooms in San Francisco</h2>
+    <p>Pit Stop locations, library and park restrooms, neighborhood-by-neighborhood tips, and what to do late at night in SF.</p>
+    <span class="more">Read the guide &rarr;</span>
+  </a>
+  <a class="card" href="./public-restrooms-new-york.html">
+    <h2>Where to Find Public Restrooms in New York City</h2>
+    <p>The reliable spots: libraries, Bryant Park, transit hubs, department stores — plus borough tips and late-night reality.</p>
+    <span class="more">Read the guide &rarr;</span>
+  </a>
+  <a class="card" href="./traveling-with-ibd.html">
+    <h2>Traveling with IBD, IBS, or an Overactive Bladder</h2>
+    <p>A practical bathroom strategy guide: route planning, the I Can&#x27;t Wait card, Ally&#x27;s Law, flying, road trips, and easing bathroom anxiety.</p>
+    <span class="more">Read the guide &rarr;</span>
+  </a>
+  <a class="card" href="./road-trip-bathroom-guide.html">
+    <h2>The Road Trip Bathroom Guide: Rest Stops &amp; Reliable Chains</h2>
+    <p>How rest areas work, the chains with famously clean restrooms, planning stops with kids, and what to keep in the car.</p>
+    <span class="more">Read the guide &rarr;</span>
+  </a>
+  <a class="card" href="./bathrooms-with-kids.html">
+    <h2>Finding Bathrooms When You&#x27;re Out with Kids: A Parent&#x27;s Guide</h2>
+    <p>Potty-training reality, where changing tables actually are, family restrooms, the parent kit, and zero-judgment survival tips.</p>
+    <span class="more">Read the guide &rarr;</span>
+  </a>
+  </div>
+</main>
+<footer class="wrap">
+  <a href="./index.html">All guides</a> &middot;
+  <a href="../about.html">About Gotta Go</a> &middot;
+  <a href="../index.html">Open the app</a>
+  <div style="margin-top:8px">&copy; Gotta Go. Data from OpenStreetMap &amp; Refuge Restrooms.</div>
+</footer>
+</body>
+</html>
