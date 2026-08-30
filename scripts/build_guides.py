@@ -179,6 +179,7 @@ def page(slug: str, meta: dict, fragment: str, today: str) -> str:
   <meta name="twitter:card" content="summary" />
   <link rel="icon" href="../icon-192.svg" type="image/svg+xml" />
   <script type="application/ld+json">{ld}</script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2007583955528498" crossorigin="anonymous"></script>
   <style>{CHROME_CSS}</style>
 </head>
 <body>
@@ -223,6 +224,7 @@ def index_page(today: str) -> str:
   <meta property="og:url" content="{BASE}/guides/index.html" />
   <link rel="icon" href="../icon-192.svg" type="image/svg+xml" />
   <script type="application/ld+json">{ld}</script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2007583955528498" crossorigin="anonymous"></script>
   <style>{CHROME_CSS}
     .grid {{ display: grid; gap: 16px; margin: 24px 0 40px; }}
     .card {{ display: block; background: #fff; border: 1px solid var(--border); border-radius: var(--radius);
