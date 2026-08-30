@@ -2,6 +2,11 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-
 import { useEffect, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+// Native leaflet.markercluster (side-effect: adds L.markerClusterGroup).
+// The react-leaflet-cluster WRAPPER broke dev module init in this stack
+// (see git history); driving the plugin imperatively avoids the wrapper.
+import "leaflet.markercluster";
+import "leaflet.markercluster/dist/MarkerCluster.css";
 import { fetchWalkingRoute, describeStep, stepArrow } from "../services/routing";
 import { formatDistance } from "../utils/distance";
 
@@ -70,6 +75,57 @@ function restroomPin({ selected, accessible, source, visitCount = 0 }) {
       ${accessibleDot}
       ${visitBadge}
     </svg>`, [w, h]);
+}
+
+/**
+ * ClusteredPins — restroom markers managed imperatively inside a
+ * leaflet.markercluster group. Dense downtowns collapse into numbered
+ * cluster bubbles instead of 150 overlapping pins (the top "map
+ * display issues" complaint against the competitor).
+ *
+ * The SELECTED pin is deliberately excluded — it renders as a normal
+ * react-leaflet Marker so the route polyline always ends at a visible
+ * pin, never inside a cluster bubble.
+ */
+function ClusteredPins({ restrooms, visits, selectedId, onSelect }) {
+  const map = useMap();
+
+  useEffect(() => {
+    const group = L.markerClusterGroup({
+      maxClusterRadius: 46,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      // Street level: show the actual pins, clustering has done its job
+      disableClusteringAtZoom: 17,
+      iconCreateFunction: (cluster) =>
+        L.divIcon({
+          html: `<div class="cluster-pin">${cluster.getChildCount()}</div>`,
+          className: "custom-pin",
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+        }),
+    });
+
+    for (const r of restrooms) {
+      if (r.id === selectedId) continue; // rendered unclustered outside
+      const visitCount = visits[r.id]?.count || 0;
+      const marker = L.marker([r.latitude, r.longitude], {
+        icon: restroomPin({
+          selected: false,
+          accessible: r.accessible,
+          source: r.source,
+          visitCount,
+        }),
+      });
+      marker.on("click", () => onSelect(r));
+      group.addLayer(marker);
+    }
+
+    map.addLayer(group);
+    return () => { map.removeLayer(group); };
+  }, [map, restrooms, visits, selectedId, onSelect]);
+
+  return null;
 }
 
 /**
@@ -191,31 +247,32 @@ export default function MapView({
           );
         })()}
 
-        {/* Restroom pins. Clustering temporarily reverted — the
-            react-leaflet-cluster lib breaks SSR/dev module init in
-            this stack; we'll do native L.markerClusterGroup wiring
-            in a follow-up PR. For now this scales fine to ~200 pins. */}
-        {restrooms.map((r) => {
-          const visitCount = visits[r.id]?.count || 0;
-          return (
-            <Marker
-              key={r.id}
-              position={[r.latitude, r.longitude]}
-              icon={restroomPin({
-                selected: r.id === selectedId,
-                accessible: r.accessible,
-                source: r.source,
-                visitCount,
-              })}
-              eventHandlers={{ click: () => onSelect(r) }}
-            >
-              <Popup>
-                {r.name || "Unnamed restroom"}
-                {visitCount > 0 && <><br />Visited {visitCount}×</>}
-              </Popup>
-            </Marker>
-          );
-        })}
+        {/* Restroom pins — clustered natively (see ClusteredPins). */}
+        <ClusteredPins
+          restrooms={restrooms}
+          visits={visits}
+          selectedId={selectedId}
+          onSelect={onSelect}
+        />
+
+        {/* The selected pin stays unclustered so the route line always
+            ends at a visible marker */}
+        {sel && (
+          <Marker
+            position={[sel.latitude, sel.longitude]}
+            icon={restroomPin({
+              selected: true,
+              accessible: sel.accessible,
+              source: sel.source,
+              visitCount: visits[sel.id]?.count || 0,
+            })}
+            eventHandlers={{ click: () => onSelect(sel) }}
+          >
+            <Popup>
+              {sel.name || "Unnamed restroom"}
+            </Popup>
+          </Marker>
+        )}
       </MapContainer>
 
       {/* Turn-by-turn strip (P0 #6) — simplified directional steps from
