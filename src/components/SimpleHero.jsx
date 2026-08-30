@@ -114,6 +114,7 @@ export default function SimpleHero({
         href={directionsUrl}
         target="_blank"
         rel="noopener noreferrer"
+        aria-label={`Get walking directions to ${restroom?.name || "the closest restroom"}`}
         onClick={handleGo}
       >
         GO

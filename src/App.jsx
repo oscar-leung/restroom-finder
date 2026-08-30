@@ -37,6 +37,7 @@ import { getTheme, applyTheme, toggleTheme } from "./services/theme";
 import { getComfort, setComfort, toggleComfort } from "./services/comfort";
 import { getPoints } from "./services/conditionReports";
 import { isOpenNow } from "./utils/hours";
+import { formatDistance } from "./utils/distance";
 import { trackEvent } from "./utils/analytics";
 import { isFlagOn } from "./utils/featureFlags";
 import { normalizeCountry } from "./utils/country";
@@ -486,6 +487,15 @@ function App() {
         onLocate={handleRefresh}
         countryOptions={countryOptions}
       />
+
+      {/* Screen-reader announcement of hero changes — swipes and card
+          promotions are pointer-driven and otherwise silent. */}
+      <div className="sr-only" role="status" aria-live="polite">
+        {hero &&
+          `${safeIndex === 0 ? "Closest" : `Number ${safeIndex + 1} nearest`}: ${
+            hero.name || "unnamed restroom"
+          }, ${formatDistance(hero.distance)} away`}
+      </div>
 
       <main className="scroll-area">
         {usageHint && (

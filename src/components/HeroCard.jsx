@@ -196,6 +196,7 @@ export default function HeroCard({
         href={directionsUrl}
         target="_blank"
         rel="noopener noreferrer"
+        aria-label={`Get walking directions to ${restroom.name || "this restroom"}`}
         onPointerDown={(e) => e.stopPropagation()}
         onClick={() => {
           trackEvent("go_clicked", {
