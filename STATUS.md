@@ -58,6 +58,15 @@ scaffolded for native apps when you're ready.
 - [x] Map legend (public / added by you / your usuals)
 - [x] User-added bathrooms colored amber with left border accent
 - [x] A/B testing framework (`go_button_label` GO vs GO NOW running now)
+- [x] **PWA install nudge** (from 2nd distinct-day visit; real prompt on
+      Chromium, Share-sheet instructions on iOS, one dismiss = silenced)
+- [x] **🪑 Bench-nearby filter** (bench within 60m, same Overpass request)
+- [x] **🚷 No-stairs filter** (hides known other-floor/underground; on by
+      default for the senior persona)
+- [x] **🌍 Country filter** (behind `country_filter` flag @ 50%; renders
+      only when results span 2+ countries)
+- [x] **Screen-reader pass** (aria-live hero announcements, labeled GO links)
+- [x] **Lint gate green** (`eslint .` passes again — PR previews were red)
 
 ### Deploy + infra
 - [x] GitHub Pages CI/CD (`.github/workflows/deploy.yml`)
@@ -143,11 +152,9 @@ once you have the accounts.
 ## What could be done autonomously next (your call)
 
 ### Quick wins (under an hour each, fully automatable)
-- **Country/region filter** — Legal Walls has this; would help global users
 - **TikTok scripts + Twitter thread** — `marketing-agent` can write these
 - **Programmatic city landing pages** — `seo-agent` can draft `/sf`, `/berkeley`,
   `/nyc` pages with local restroom counts (good for SEO + sharing)
-- **PWA install prompt** — nudge users to "Add to Home Screen" after their 2nd visit
 
 ### Medium (a few hours)
 - **Backend for cross-user concentration heatmap** — currently the
