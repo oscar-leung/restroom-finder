@@ -39,11 +39,13 @@ export const FLAGS = {
     rollout: 0.5,
     default: "control",
   },
-  // Example: gate the country filter (P2 #15) until ready for full rollout
+  // Country filter (P2 #15) — built Aug 2026. The dropdown only renders
+  // when the loaded results actually span 2+ countries (border towns,
+  // travelers planning ahead via search), so exposure is naturally rare.
   country_filter: {
     description: "Show country/region filter dropdown",
     variants: ["off", "on"],
-    rollout: 0.0, // start at 0% — flip up when ready
+    rollout: 0.5, // A/B: measure filter_toggled + go_clicked deltas
     default: "off",
   },
   // Aurora intensity — let us A/B "bold" vs "subtle"

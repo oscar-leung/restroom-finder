@@ -4,15 +4,23 @@ import { trackEvent } from "../utils/analytics";
  * FilterBar — horizontal row of toggle chips.
  *
  * Props:
- *   filters   – { accessible, unisex, free, openNow }
- *   onChange  – callback receiving updated filters object
- *   onLocate  – callback for the "Near me" button (re-request location)
+ *   filters        – { accessible, unisex, free, openNow, ... country }
+ *   onChange       – callback receiving updated filters object
+ *   onLocate       – callback for the "Near me" button (re-request location)
+ *   countryOptions – distinct countries in the loaded results; the
+ *                    dropdown renders only when there are 2+ (behind
+ *                    the country_filter flag — pass undefined when off)
  */
-export default function FilterBar({ filters, onChange, onLocate }) {
+export default function FilterBar({ filters, onChange, onLocate, countryOptions }) {
   const toggle = (key) => {
     const next = { ...filters, [key]: !filters[key] };
     trackEvent("filter_toggled", { filter: key, on: next[key] });
     onChange(next);
+  };
+
+  const pickCountry = (value) => {
+    trackEvent("filter_toggled", { filter: "country", on: !!value, country: value });
+    onChange({ ...filters, country: value });
   };
 
   return (
@@ -84,6 +92,20 @@ export default function FilterBar({ filters, onChange, onLocate }) {
         <span className="chip-icon" aria-hidden="true">🚷</span>
         No stairs
       </button>
+
+      {countryOptions && countryOptions.length >= 2 && (
+        <select
+          className={`chip chip-select ${filters.country ? "chip-active" : ""}`}
+          value={filters.country || ""}
+          onChange={(e) => pickCountry(e.target.value)}
+          aria-label="Filter by country"
+        >
+          <option value="">🌍 All countries</option>
+          {countryOptions.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+      )}
 
       <button className="chip chip-locate" onClick={onLocate} title="Recenter on my location">
         <span className="chip-icon" aria-hidden="true">📍</span>

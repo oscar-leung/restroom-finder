@@ -38,6 +38,8 @@ import { getComfort, setComfort, toggleComfort } from "./services/comfort";
 import { getPoints } from "./services/conditionReports";
 import { isOpenNow } from "./utils/hours";
 import { trackEvent } from "./utils/analytics";
+import { isFlagOn } from "./utils/featureFlags";
+import { normalizeCountry } from "./utils/country";
 import "./index.css";
 
 // Fallback if geolocation denied (San Francisco)
@@ -91,6 +93,7 @@ function App() {
     singleOccupant: false,
     bench: false,
     noStairs: false,
+    country: "",
     ...getPersonaFilterDefaults(getPersona()),
   }));
   // Achievement toast queue (shows one at a time)
@@ -208,6 +211,10 @@ function App() {
       // No-stairs chip: lenient like Free — hide entries we KNOW are on
       // another floor or underground; unknown stays visible.
       .filter((r) => !filters.noStairs || r.ground_floor !== false)
+      // Country dropdown (flag-gated): match normalized country codes.
+      .filter(
+        (r) => !filters.country || normalizeCountry(r.country) === filters.country
+      )
       .sort((a, b) => a.distance - b.distance);
   }, [restrooms, userBathrooms, position, filters]);
 
@@ -298,6 +305,19 @@ function App() {
       });
     }
   };
+
+  // Country filter (P2 #15, behind the country_filter flag): the
+  // dropdown only appears when the loaded results span 2+ countries —
+  // border towns, or travelers planning ahead via search.
+  const countryOptions = useMemo(() => {
+    if (!isFlagOn("country_filter")) return undefined;
+    const set = new Set();
+    for (const r of [...restrooms, ...userBathrooms]) {
+      const c = normalizeCountry(r.country);
+      if (c) set.add(c);
+    }
+    return Array.from(set).sort();
+  }, [restrooms, userBathrooms]);
 
   // Bucket counts for the header summary ("X within 500m")
   const bucketCounts = useMemo(() => {
@@ -464,6 +484,7 @@ function App() {
         filters={filters}
         onChange={setFilters}
         onLocate={handleRefresh}
+        countryOptions={countryOptions}
       />
 
       <main className="scroll-area">
