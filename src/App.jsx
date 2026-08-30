@@ -35,7 +35,7 @@ import { tryUnlock } from "./services/achievements";
 import { touchStreak, getStreak } from "./services/streak";
 import { getTheme, applyTheme, toggleTheme } from "./services/theme";
 import { getComfort, setComfort, toggleComfort } from "./services/comfort";
-import { getPoints } from "./services/conditionReports";
+import { getPoints, isSuppressed, getSuppressedCount, clearSuppressed } from "./services/conditionReports";
 import { isOpenNow } from "./utils/hours";
 import { formatDistance } from "./utils/distance";
 import { trackEvent } from "./utils/analytics";
@@ -151,9 +151,16 @@ function App() {
   };
   // Points (visible badge in header)
   const [points, setPoints] = useState(() => getPoints());
-  // Refresh points when details modal closes (in case condition reports happened)
+  // "Doesn't exist" suppressions can change while the details modal is
+  // open — bump this to re-filter the list after it closes.
+  const [suppressedTick, setSuppressedTick] = useState(0);
+  // Refresh points + suppressions when details modal closes (in case
+  // condition reports happened inside it)
   useEffect(() => {
-    if (!detailsOpen) setPoints(getPoints());
+    if (!detailsOpen) {
+      setPoints(getPoints());
+      setSuppressedTick((t) => t + 1);
+    }
   }, [detailsOpen]);
   const onToggleTheme = () => {
     const next = toggleTheme();
@@ -184,8 +191,10 @@ function App() {
   // Merge API + user-added, attach distance, apply filters, sort by distance.
   const sorted = useMemo(() => {
     if (!position) return [];
+    void suppressedTick; // re-filter after "doesn't exist" reports
     const combined = [...restrooms, ...userBathrooms];
     return combined
+      .filter((r) => !isSuppressed(r.id))
       .map((r) => ({
         ...r,
         distance: distanceMeters(
@@ -217,7 +226,7 @@ function App() {
         (r) => !filters.country || normalizeCountry(r.country) === filters.country
       )
       .sort((a, b) => a.distance - b.distance);
-  }, [restrooms, userBathrooms, position, filters]);
+  }, [restrooms, userBathrooms, position, filters, suppressedTick]);
 
   // Clamp heroIndex if the list shrunk
   const safeIndex = Math.min(heroIndex, Math.max(0, sorted.length - 1));
@@ -524,6 +533,23 @@ function App() {
             </span>
           )}
         </div>
+
+        {getSuppressedCount() > 0 && (
+          <div className="suppressed-row">
+            <span aria-hidden="true">👻</span>{" "}
+            {getSuppressedCount()} hidden as “doesn't exist”
+            <button
+              className="suppressed-restore"
+              onClick={() => {
+                clearSuppressed();
+                setSuppressedTick((t) => t + 1);
+                trackEvent("suppressed_restored");
+              }}
+            >
+              Restore
+            </button>
+          </div>
+        )}
 
         {simpleMode ? (
           <SimpleHero

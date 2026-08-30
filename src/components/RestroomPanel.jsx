@@ -58,7 +58,11 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
       return;
     }
     setBathState(getBathroomState(restroom.id));
-    setReportToast(`+${result.awarded} pts · thanks for reporting`);
+    setReportToast(
+      type === "not_here"
+        ? `+${result.awarded} pts · hidden from your results (Restore on the main screen)`
+        : `+${result.awarded} pts · thanks for reporting`
+    );
     setTimeout(() => setReportToast(null), 3000);
     trackEvent("condition_reported", { id: String(restroom.id), type, points: result.awarded });
   };
