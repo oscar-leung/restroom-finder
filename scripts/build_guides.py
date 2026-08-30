@@ -45,6 +45,30 @@ GUIDES = {
         "title": "Finding Bathrooms When You're Out with Kids: A Parent's Guide",
         "desc": "Potty-training reality, where changing tables actually are, family restrooms, the parent kit, and zero-judgment survival tips.",
     },
+    "public-restrooms-los-angeles": {
+        "title": "Where to Find Public Restrooms in Los Angeles",
+        "desc": "Beach restrooms, parks, libraries, malls, and Union Station — plus honest tips for Hollywood Blvd, DTLA, and late nights.",
+    },
+    "public-restrooms-chicago": {
+        "title": "Where to Find Public Restrooms in Chicago",
+        "desc": "The Loop, Mag Mile, Harold Washington Library, the Cultural Center, lakefront facilities — and the winter reality check.",
+    },
+    "public-restrooms-las-vegas": {
+        "title": "Finding Restrooms in Las Vegas: The Strip and Beyond",
+        "desc": "Casino restrooms are free and everywhere — the real problem is the walk. Strategy for the Strip, Fremont, and off-Strip.",
+    },
+    "hiking-outdoors-bathroom-guide": {
+        "title": "The Outdoor Bathroom Guide: Trailheads, Vault Toilets & Leave No Trace",
+        "desc": "What to expect at trailheads, vault toilet survival, the cathole method done right, wag bags, and a gear checklist.",
+    },
+    "theme-park-bathroom-guide": {
+        "title": "The Theme Park Bathroom Strategy Guide",
+        "desc": "Disney, Universal, and beyond: when restrooms are empty, baby care centers, the ride-line problem, and summer hydration.",
+    },
+    "cleanest-public-restrooms": {
+        "title": "Which Places Have the Cleanest Public Restrooms? A Field Ranking",
+        "desc": "A tier ranking of hotel lobbies, Buc-ee's, libraries, groceries, fast food, and gas stations — and why staffing decides everything.",
+    },
 }
 
 CHROME_CSS = """
