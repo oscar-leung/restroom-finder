@@ -566,6 +566,25 @@ export const STRINGS = {
     fr: "Signaler que c'est propre", de: "Als sauber melden", ja: "今きれいだと報告",
   },
 
+  // ---- Achievements chrome (names stay English — untranslatable puns
+  //      are brand voice; a bad translation beats no translation never) ----
+  "ach.unlocked": {
+    en: "Unlocked:", es: "Desbloqueado:", fr: "Débloqué :", de: "Freigeschaltet:", ja: "解除：",
+  },
+
+  // ---- Map legend ----
+  "legend.public": {
+    en: "Public", es: "Público", fr: "Public", de: "Öffentlich", ja: "公共",
+  },
+  "legend.addedByYou": {
+    en: "Added by you", es: "Añadido por ti", fr: "Ajouté par vous", de: "Von dir", ja: "あなたの投稿",
+  },
+  "legend.usuals": {
+    en: "Your usuals (sized by visits)", es: "Tus habituales (según visitas)",
+    fr: "Vos habitués (taille selon visites)", de: "Deine Stammorte (nach Besuchen)",
+    ja: "よく行く場所（訪問回数順）",
+  },
+
   // ---- Voice ----
   "voice.label": { en: "Voice", es: "Voz", fr: "Voix", de: "Sprache", ja: "音声" },
   "voice.listening": {

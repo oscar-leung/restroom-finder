@@ -82,6 +82,11 @@ scaffolded for native apps when you're ready.
 - [x] **Fixed: `out tags` Overpass bug** — node toilets AND the entire
       common-places tier (76, Starbucks, malls…) returned zero results
       in production
+- [x] **🗺️ Marker clustering** (native leaflet.markercluster — dense
+      downtowns collapse into numbered bubbles; selected pin stays
+      unclustered so the route line ends at a visible marker)
+- [x] **4 more city guides** (Seattle, Boston, Washington DC, Houston —
+      17 guide pages total, sitemap updated)
 - [x] **☁️ Backend scaffold** (`workers/` — Cloudflare Worker + KV:
       cross-user reports, GO popularity; ships dark until you deploy it
       per `workers/RUNBOOK.md` and set the `VITE_API_BASE` secret)

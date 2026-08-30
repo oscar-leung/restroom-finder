@@ -1,10 +1,12 @@
 import { useEffect } from "react";
+import { useI18n } from "../i18n";
 
 /**
  * AchievementToast — slides up from the bottom when an achievement
  * unlocks. Auto-dismisses after 3.5s. Tappable to dismiss earlier.
  */
 export default function AchievementToast({ achievement, onDismiss }) {
+  const { t } = useI18n();
   useEffect(() => {
     if (!achievement) return;
     const t = setTimeout(onDismiss, 3500);
@@ -18,7 +20,7 @@ export default function AchievementToast({ achievement, onDismiss }) {
       <div className="achievement-icon">{achievement.icon}</div>
       <div className="achievement-text">
         <div className="achievement-title">
-          Unlocked: {achievement.title}
+          {t("ach.unlocked")} {achievement.title}
         </div>
         <div className="achievement-desc">{achievement.desc}</div>
       </div>

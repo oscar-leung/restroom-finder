@@ -9,6 +9,7 @@ import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import { fetchWalkingRoute, describeStep, stepArrow } from "../services/routing";
 import { formatDistance } from "../utils/distance";
+import { useI18n } from "../i18n";
 
 /**
  * Build a custom Leaflet DivIcon from an SVG string.
@@ -163,6 +164,7 @@ export default function MapView({
   selectedId,
   recenterKey,
 }) {
+  const { t } = useI18n();
   const center = [position.latitude, position.longitude];
   const hasVisits = Object.keys(visits).length > 0;
 
@@ -296,16 +298,16 @@ export default function MapView({
       <div className="map-legend" aria-hidden="true">
         <div className="map-legend-row">
           <span className="map-legend-pin map-legend-pin-default" />
-          <span>Public</span>
+          <span>{t("legend.public")}</span>
         </div>
         <div className="map-legend-row">
           <span className="map-legend-pin map-legend-pin-user" />
-          <span>Added by you</span>
+          <span>{t("legend.addedByYou")}</span>
         </div>
         {hasVisits && (
           <div className="map-legend-row">
             <span className="map-legend-pin map-legend-pin-visited" />
-            <span>Your usuals (sized by visits)</span>
+            <span>{t("legend.usuals")}</span>
           </div>
         )}
       </div>
