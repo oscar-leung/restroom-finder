@@ -2,7 +2,8 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-
 import { useEffect, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { fetchWalkingRoute } from "../services/routing";
+import { fetchWalkingRoute, describeStep, stepArrow } from "../services/routing";
+import { formatDistance } from "../utils/distance";
 
 /**
  * Build a custom Leaflet DivIcon from an SVG string.
@@ -105,12 +106,12 @@ export default function MapView({
   const center = [position.latitude, position.longitude];
   const hasVisits = Object.keys(visits).length > 0;
 
-  // Real walking-route polyline via OSRM. Falls back to straight line
-  // if OSRM fails or returns nothing.
-  const [routeCoords, setRouteCoords] = useState(null);
+  // Real walking-route via OSRM (polyline + turn-by-turn steps).
+  // Falls back to straight line if OSRM fails or returns nothing.
+  const [route, setRoute] = useState(null);
   useEffect(() => {
     let cancelled = false;
-    setRouteCoords(null);
+    setRoute(null);
     const sel = restrooms.find((r) => r.id === selectedId);
     if (!sel) return;
     fetchWalkingRoute(
@@ -118,10 +119,11 @@ export default function MapView({
       { lat: sel.latitude, lng: sel.longitude }
     ).then((res) => {
       if (cancelled || !res) return;
-      setRouteCoords(res.coordinates);
+      setRoute(res);
     });
     return () => { cancelled = true; };
   }, [selectedId, position.latitude, position.longitude]);
+  const routeCoords = route?.coordinates || null;
 
   return (
     <>
@@ -206,6 +208,23 @@ export default function MapView({
           );
         })}
       </MapContainer>
+
+      {/* Turn-by-turn strip (P0 #6) — simplified directional steps from
+          OSRM. The demo profile carries no street names, so each step
+          is "Turn left · 120 m" style. Skip trivial 1-2 step routes. */}
+      {route && route.steps && route.steps.length > 2 && (
+        <div className="route-steps" role="list" aria-label="Walking directions">
+          {route.steps.map((s, i) => (
+            <span key={i} className="route-step" role="listitem">
+              <span className="route-step-arrow" aria-hidden="true">{stepArrow(s)}</span>
+              {describeStep(s)}
+              {s.distance >= 10 && s.type !== "arrive" && (
+                <span className="route-step-dist">{formatDistance(s.distance)}</span>
+              )}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Legend overlay */}
       <div className="map-legend" aria-hidden="true">

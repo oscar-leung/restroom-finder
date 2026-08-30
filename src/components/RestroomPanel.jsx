@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { formatDistance } from "../utils/distance";
 import { formatLastVisit } from "../services/visitTracker";
-import { isOpenNow, formatHours } from "../utils/hours";
+import { isOpenNow, formatHours, nextChange } from "../utils/hours";
 import { isFavorite, toggleFavorite } from "../services/favorites";
 import { tryUnlock } from "../services/achievements";
 import { reportClean, getCleaningLog, formatRelative, getBountyStatus } from "../services/cleaningLog";
@@ -198,6 +198,12 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
           <section className="modal-section">
             <h3>Hours</h3>
             <p>{formatHours(restroom.opening_hours)}</p>
+            {(() => {
+              // "Open until 17:00" / "Opens at 9:00" — null while the
+              // lazy hours library loads or when unparseable
+              const change = nextChange(restroom.opening_hours);
+              return change ? <p className="muted">{change}</p> : null;
+            })()}
           </section>
         )}
 

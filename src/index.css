@@ -3657,3 +3657,42 @@ select.chip-select {
   text-decoration: underline;
   padding: 4px 6px;
 }
+
+/* ===== Turn-by-turn strip on the map overlay (P0 #6) ===== */
+.route-steps {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: calc(14px + var(--safe-bottom));
+  z-index: 1000; /* above leaflet panes */
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 4px 2px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.route-steps::-webkit-scrollbar { display: none; }
+.route-step {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  box-shadow: var(--shadow-md);
+  white-space: nowrap;
+}
+.route-step-arrow { font-size: 14px; }
+.route-step-dist {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+[data-theme="midnight"] .route-step {
+  background: var(--bg-muted);
+}
