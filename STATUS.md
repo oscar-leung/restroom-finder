@@ -67,6 +67,21 @@ scaffolded for native apps when you're ready.
       only when results span 2+ countries)
 - [x] **Screen-reader pass** (aria-live hero announcements, labeled GO links)
 - [x] **Lint gate green** (`eslint .` passes again — PR previews were red)
+- [x] **👻 "Doesn't exist" reports** (+15 pts, hides phantom entries on
+      this device, bulk Restore on the main screen)
+- [x] **⚠️ Condition warning badge** on hero + alt cards (worst negative
+      report in 24h; a newer clean report clears it)
+- [x] **🚻 Facilities section** (displays OSM fixture data + quick-edit
+      form; user edits merge over source tags)
+- [x] **🧭 Turn-by-turn strip** on the map route (OSRM steps, was
+      fetched-but-never-shown)
+- [x] **🌍 Multilingual: en/es/fr/de/ja** (~2KB dependency-free i18n,
+      header switcher, auto-detect, English fallback)
+- [x] **🧪 44 unit tests (vitest)** for the pure service layer, running
+      in the PR gate between lint and build
+- [x] **Fixed: `out tags` Overpass bug** — node toilets AND the entire
+      common-places tier (76, Starbucks, malls…) returned zero results
+      in production
 
 ### Deploy + infra
 - [x] GitHub Pages CI/CD (`.github/workflows/deploy.yml`)
