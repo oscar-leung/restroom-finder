@@ -7,6 +7,7 @@ import { tryUnlock } from "../services/achievements";
 import { reportClean, getCleaningLog, formatRelative, getBountyStatus } from "../services/cleaningLog";
 import { uploadPhoto, getPhotos } from "../services/photos";
 import { reportCondition, getBathroomState, REPORT_TYPES } from "../services/conditionReports";
+import { FIXTURE_FIELDS, getFixtureEdits, saveFixtureEdits, getMergedFixtures } from "../services/fixtures";
 import { trackEvent } from "../utils/analytics";
 import Reviews from "./Reviews";
 
@@ -31,6 +32,9 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
     restroom ? getBathroomState(restroom.id) : null
   );
   const [reportToast, setReportToast] = useState(null);
+  // Fixture quick-edit form state — null = closed, object = draft values
+  const [fixtureDraft, setFixtureDraft] = useState(null);
+  const [fixtureSavedAt, setFixtureSavedAt] = useState(0); // bump to re-read merged view
   const fileRef = useRef(null);
 
   useEffect(() => {
@@ -240,6 +244,92 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
           </button>
           {uploadError && <p className="upload-error">{uploadError}</p>}
         </section>
+
+        {/* Facilities — display merged fixture data + quick-edit form
+            (ROADMAP "Fixture data": most entries lack tags; users fill
+            the gap). fixtureSavedAt keys the memo-less re-read. */}
+        {(() => {
+          // fixtureSavedAt state-bump triggers this re-read after a save
+          void fixtureSavedAt;
+          const merged = getMergedFixtures(restroom);
+          const known = FIXTURE_FIELDS.filter((f) => merged[f.key] !== null && merged[f.key] !== undefined);
+          const openEdit = () => {
+            const existing = getFixtureEdits(restroom.id) || {};
+            setFixtureDraft({
+              stalls: existing.stalls ?? "",
+              sink: existing.sink === true ? "yes" : existing.sink === false ? "no" : "",
+              paper_towels: existing.paper_towels === true ? "yes" : existing.paper_towels === false ? "no" : "",
+              changing_table: existing.changing_table === true ? "yes" : existing.changing_table === false ? "no" : "",
+            });
+          };
+          const save = () => {
+            saveFixtureEdits(restroom.id, {
+              stalls: fixtureDraft.stalls,
+              sink: fixtureDraft.sink === "" ? null : fixtureDraft.sink === "yes",
+              paper_towels: fixtureDraft.paper_towels === "" ? null : fixtureDraft.paper_towels === "yes",
+              changing_table: fixtureDraft.changing_table === "" ? null : fixtureDraft.changing_table === "yes",
+            });
+            setFixtureDraft(null);
+            setFixtureSavedAt(Date.now());
+            trackEvent("fixtures_edited", { id: String(restroom.id) });
+          };
+          return (
+            <section className="modal-section">
+              <h3>Facilities {merged.edited && <span className="fixtures-edited-tag">your edits</span>}</h3>
+              {known.length > 0 ? (
+                <div className="fixtures-row">
+                  {known.map((f) => (
+                    <span key={f.key} className="fixtures-pill">
+                      <span aria-hidden="true">{f.icon}</span>{" "}
+                      {f.kind === "count"
+                        ? `${merged[f.key]} ${f.label.toLowerCase()}`
+                        : `${f.label}: ${merged[f.key] ? "yes" : "no"}`}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="muted">No facility details yet — know this bathroom?</p>
+              )}
+              {fixtureDraft ? (
+                <div className="fixtures-form">
+                  <label className="fixtures-field">
+                    <span>🚻 Stalls</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="99"
+                      inputMode="numeric"
+                      value={fixtureDraft.stalls}
+                      onChange={(e) => setFixtureDraft({ ...fixtureDraft, stalls: e.target.value })}
+                      placeholder="—"
+                    />
+                  </label>
+                  {FIXTURE_FIELDS.filter((f) => f.kind === "bool").map((f) => (
+                    <label key={f.key} className="fixtures-field">
+                      <span>{f.icon} {f.label}</span>
+                      <select
+                        value={fixtureDraft[f.key]}
+                        onChange={(e) => setFixtureDraft({ ...fixtureDraft, [f.key]: e.target.value })}
+                      >
+                        <option value="">Don't know</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                      </select>
+                    </label>
+                  ))}
+                  <div className="fixtures-form-actions">
+                    <button className="btn-secondary" onClick={() => setFixtureDraft(null)}>Cancel</button>
+                    <button className="btn-secondary fixtures-save" onClick={save}>Save</button>
+                  </div>
+                </div>
+              ) : (
+                <button className="btn-secondary" onClick={openEdit}>
+                  ✏️ {known.length > 0 ? "Edit facilities" : "Add facilities"}
+                </button>
+              )}
+            </section>
+          );
+        })()}
 
         {/* Condition report — GasBuddy-style one-tap status reporting */}
         <section className="modal-section">

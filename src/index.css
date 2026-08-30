@@ -3577,3 +3577,63 @@ select.chip-select {
   background: rgba(239, 68, 68, 0.18);
   color: #fca5a5;
 }
+
+/* ===== Facilities (fixture data + quick-edit) ===== */
+.fixtures-edited-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--primary-dark);
+  background: var(--primary-soft);
+  border-radius: 999px;
+  padding: 2px 8px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.fixtures-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.fixtures-pill {
+  font-size: 12.5px;
+  padding: 5px 10px;
+  background: var(--bg-muted);
+  border-radius: 999px;
+  color: var(--text);
+}
+.fixtures-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+.fixtures-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13.5px;
+}
+.fixtures-field input,
+.fixtures-field select {
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  width: 110px;
+}
+.fixtures-form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.fixtures-save {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white !important;
+  border: none;
+}
