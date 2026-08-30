@@ -3557,3 +3557,13 @@ select.chip-select {
   white-space: nowrap;
   border: 0;
 }
+
+/* ===== Senior-friendly badge ===== */
+.badge-senior {
+  background: #e0f2fe;
+  color: #075985;
+}
+[data-theme="midnight"] .badge-senior {
+  background: rgba(14, 165, 233, 0.18);
+  color: #7dd3fc;
+}

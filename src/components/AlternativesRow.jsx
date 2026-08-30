@@ -38,10 +38,11 @@ export default function AlternativesRow({ restrooms, onPromote }) {
               <div className="alt-name">{r.name || "Unnamed"}</div>
               <div className="alt-street">{address || ""}</div>
               {r.inferred && (
-                <div className="alt-inferred-note">Customer bathroom</div>
+                <div className="alt-inferred-note">{r.inferred_kind || "Customer bathroom"}</div>
               )}
               <div className="alt-icons">
                 {r.accessible && <span title="Accessible">♿</span>}
+                {r.senior_friendly && <span title="Senior-friendly">🧓</span>}
                 {r.unisex && <span title="Gender neutral">⚧</span>}
                 {r.fee === false && <span className="alt-free" title="Free">free</span>}
                 {knownStatus && (

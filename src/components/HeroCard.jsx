@@ -168,6 +168,11 @@ export default function HeroCard({
             👨‍👩‍👧 Family
           </span>
         )}
+        {restroom.senior_friendly && (
+          <span className="badge badge-senior" title="Staffed public building — clean, accessible restrooms">
+            🧓 Senior-friendly
+          </span>
+        )}
         {(() => {
           const { isOpen, knownStatus } = isOpenNow(restroom.opening_hours);
           if (!knownStatus) return null;
