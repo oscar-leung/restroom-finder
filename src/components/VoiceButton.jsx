@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { trackEvent } from "../utils/analytics";
+import { useI18n } from "../i18n";
 
 /**
  * VoiceButton — uses the Web Speech API for "find a bathroom" voice
@@ -30,6 +31,7 @@ export default function VoiceButton({
   onRoulette,
 }) {
   const [listening, setListening] = useState(false);
+  const { t } = useI18n();
   const [transcript, setTranscript] = useState("");
   const recRef = useRef(null);
 
@@ -100,7 +102,7 @@ export default function VoiceButton({
   if (!supported) {
     return (
       <button className="voice-btn voice-btn-unsupported" disabled title="Voice not supported in this browser">
-        🎙️ <span className="voice-label">Voice</span>
+        🎙️ <span className="voice-label">{t("voice.label")}</span>
       </button>
     );
   }
@@ -113,7 +115,7 @@ export default function VoiceButton({
       aria-pressed={listening}
     >
       <span className="voice-icon" aria-hidden="true">{listening ? "🔴" : "🎙️"}</span>
-      <span className="voice-label">{listening ? "Listening…" : "Voice"}</span>
+      <span className="voice-label">{listening ? t("voice.listening") : t("voice.label")}</span>
       {transcript && listening && <span className="voice-transcript">"{transcript}"</span>}
     </button>
   );

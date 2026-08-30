@@ -145,7 +145,7 @@ export default function HeroCard({
               >
                 ↑
               </div>
-              <div className="hero-stat-label">go {cardinal}</div>
+              <div className="hero-stat-label">{t("simple.goDirection", { dir: cardinal })}</div>
             </div>
           </>
         )}
@@ -153,35 +153,35 @@ export default function HeroCard({
 
       <div className="hero-badges">
         {restroom.accessible && (
-          <span className="badge badge-accessible">♿ Accessible</span>
+          <span className="badge badge-accessible">♿ {t("filter.accessible")}</span>
         )}
         {restroom.unisex && (
-          <span className="badge badge-unisex">⚧ Gender Neutral</span>
+          <span className="badge badge-unisex">⚧ {t("filter.unisex")}</span>
         )}
         {restroom.fee === false && (
-          <span className="badge badge-free">Free</span>
+          <span className="badge badge-free">{t("filter.free")}</span>
         )}
         {restroom.single_occupant === true && (
           <span className="badge badge-private" title="Single-occupant locked room">
-            🔒 Private
+            🔒 {t("filter.private")}
           </span>
         )}
         {restroom.family === true && (
           <span className="badge badge-family" title="Family-friendly">
-            👨‍👩‍👧 Family
+            👨‍👩‍👧 {t("badge.family")}
           </span>
         )}
         {restroom.senior_friendly && (
           <span className="badge badge-senior" title="Staffed public building — clean, accessible restrooms">
-            🧓 Senior-friendly
+            🧓 {t("badge.senior")}
           </span>
         )}
         {(() => {
           const { isOpen, knownStatus } = isOpenNow(restroom.opening_hours);
           if (!knownStatus) return null;
           return isOpen
-            ? <span className="badge badge-open">🟢 Open now</span>
-            : <span className="badge badge-closed">🔴 Closed</span>;
+            ? <span className="badge badge-open">🟢 {t("filter.openNow")}</span>
+            : <span className="badge badge-closed">🔴 {t("badge.closed")}</span>;
         })()}
         {(() => {
           const s = getStats(restroom.id);
@@ -194,7 +194,7 @@ export default function HeroCard({
         })()}
         {visitCount > 0 && (
           <span className="badge badge-visited" title="You've been here before">
-            👟 visited {visitCount}×
+            👟 {t("badge.visited", { n: visitCount })}
           </span>
         )}
         {(() => {
@@ -203,9 +203,9 @@ export default function HeroCard({
           return (
             <span
               className="badge badge-condition-warn"
-              title={`You reported this ${warn.label.toLowerCase()} in the last 24h`}
+              title={`You reported this in the last 24h`}
             >
-              {warn.icon} {warn.label}
+              {warn.icon} {t(`report.${warn.type}`)}
             </span>
           );
         })()}

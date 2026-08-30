@@ -189,6 +189,23 @@ export const STRINGS = {
   "badge.closed": {
     en: "Closed", es: "Cerrado", fr: "Fermé", de: "Geschlossen", ja: "営業時間外",
   },
+  "badge.family": {
+    en: "Family", es: "Familiar", fr: "Famille", de: "Familie", ja: "ファミリー",
+  },
+  "badge.senior": {
+    en: "Senior-friendly", es: "Para mayores", fr: "Adapté aux aînés",
+    de: "Seniorenfreundlich", ja: "シニア向け",
+  },
+  "badge.visited": {
+    en: "visited {n}×", es: "visitado {n}×", fr: "visité {n}×",
+    de: "{n}× besucht", ja: "{n}回訪問",
+  },
+  "badge.paid": {
+    en: "Paid", es: "De pago", fr: "Payant", de: "Kostenpflichtig", ja: "有料",
+  },
+  "badge.noInfo": {
+    en: "No info", es: "Sin info", fr: "Aucune info", de: "Keine Infos", ja: "情報なし",
+  },
 
   // ---- Main-screen buttons ----
   "map.viewAll": {
@@ -241,6 +258,212 @@ export const STRINGS = {
   },
   "install.cta": {
     en: "Install", es: "Instalar", fr: "Installer", de: "Installieren", ja: "インストール",
+  },
+
+  // ---- Persona picker (first-touch) ----
+  "persona.welcome": {
+    en: "Welcome to {brand}", es: "Bienvenido a {brand}", fr: "Bienvenue sur {brand}",
+    de: "Willkommen bei {brand}", ja: "{brand}へようこそ",
+  },
+  "persona.sub": {
+    en: "Help us tailor it. Pick one — you can change later.",
+    es: "Ayúdanos a adaptarla. Elige una — puedes cambiarla luego.",
+    fr: "Aidez-nous à l'adapter. Choisissez — modifiable plus tard.",
+    de: "Hilf uns, die App anzupassen. Wähle eins — später änderbar.",
+    ja: "あなたに合わせます。あとで変更できます。",
+  },
+  "persona.student.name": {
+    en: "I'm a student", es: "Soy estudiante", fr: "Je suis étudiant·e",
+    de: "Ich bin Student:in", ja: "学生です",
+  },
+  "persona.student.desc": {
+    en: "Show free options first. Quick share with friends. No purchase required filter on by default.",
+    es: "Opciones gratis primero. Compartir rápido. Filtro «sin compra» activado.",
+    fr: "Options gratuites d'abord. Partage rapide. Filtre « gratuit » activé.",
+    de: "Kostenlose Optionen zuerst. Schnelles Teilen. Gratis-Filter aktiv.",
+    ja: "無料の選択肢を優先。簡単共有。無料フィルターをオンに。",
+  },
+  "persona.senior.name": {
+    en: "Larger text + accessibility", es: "Texto grande + accesibilidad",
+    fr: "Texte agrandi + accessibilité", de: "Größere Schrift + Barrierefreiheit",
+    ja: "大きな文字とアクセシビリティ",
+  },
+  "persona.senior.desc": {
+    en: "Bigger buttons, calmer screen, accessibility filter on, walking time at a relaxed pace. Less visual noise.",
+    es: "Botones grandes, pantalla tranquila, filtro accesible, ritmo de paseo relajado.",
+    fr: "Grands boutons, écran apaisé, filtre accessible, rythme de marche détendu.",
+    de: "Große Buttons, ruhiger Bildschirm, Barrierefrei-Filter, gemütliches Tempo.",
+    ja: "大きなボタン、落ち着いた画面、ゆっくり歩行の所要時間。",
+  },
+  "persona.default.name": {
+    en: "Just give me the app", es: "Solo dame la app", fr: "Donnez-moi juste l'appli",
+    de: "Einfach die App", ja: "そのまま使う",
+  },
+  "persona.default.desc": {
+    en: "Default experience. All features on.", es: "Experiencia estándar. Todo activado.",
+    fr: "Expérience par défaut. Tout activé.", de: "Standard. Alles an.", ja: "標準設定。全機能オン。",
+  },
+  "persona.skip": {
+    en: "skip", es: "omitir", fr: "passer", de: "überspringen", ja: "スキップ",
+  },
+
+  // ---- Roulette ----
+  "roulette.spinning": {
+    en: "Picking…", es: "Eligiendo…", fr: "Choix…", de: "Wird gewählt…", ja: "選んでいます…",
+  },
+  "roulette.label": {
+    en: "Try somewhere new", es: "Prueba otro sitio", fr: "Tentez un autre endroit",
+    de: "Was Neues probieren", ja: "新しい場所を試す",
+  },
+
+  // ---- Reviews ----
+  "reviews.title": {
+    en: "Reviews", es: "Reseñas", fr: "Avis", de: "Bewertungen", ja: "レビュー",
+  },
+  "reviews.one": {
+    en: "{n} review", es: "{n} reseña", fr: "{n} avis", de: "{n} Bewertung", ja: "{n}件",
+  },
+  "reviews.many": {
+    en: "{n} reviews", es: "{n} reseñas", fr: "{n} avis", de: "{n} Bewertungen", ja: "{n}件",
+  },
+  "reviews.write": {
+    en: "+ Write a review", es: "+ Escribir reseña", fr: "+ Écrire un avis",
+    de: "+ Bewertung schreiben", ja: "+ レビューを書く",
+  },
+  "reviews.overall": {
+    en: "Overall", es: "General", fr: "Général", de: "Gesamt", ja: "総合",
+  },
+  "reviews.placeholder": {
+    en: "Anything useful for the next person? (optional)",
+    es: "¿Algo útil para la siguiente persona? (opcional)",
+    fr: "Un détail utile pour la personne suivante ? (facultatif)",
+    de: "Etwas Nützliches für die Nächsten? (optional)",
+    ja: "次の人に役立つ情報があれば（任意）",
+  },
+  "reviews.post": {
+    en: "Post", es: "Publicar", fr: "Publier", de: "Posten", ja: "投稿",
+  },
+  "reviews.empty": {
+    en: "No reviews yet — be the first.",
+    es: "Aún no hay reseñas — sé la primera persona.",
+    fr: "Pas encore d'avis — soyez le premier.",
+    de: "Noch keine Bewertungen — sei die erste.",
+    ja: "まだレビューがありません — 最初の一人に。",
+  },
+
+  // ---- Recently added ----
+  "recent.title": {
+    en: "Recently added by you", es: "Añadidos por ti", fr: "Ajoutés par vous",
+    de: "Von dir hinzugefügt", ja: "あなたが追加した場所",
+  },
+  "recent.contributed": {
+    en: "{n} contributed", es: "{n} aportados", fr: "{n} contributions",
+    de: "{n} beigetragen", ja: "{n}件の投稿",
+  },
+  "recent.badge": {
+    en: "added by you", es: "añadido por ti", fr: "ajouté par vous",
+    de: "von dir", ja: "あなたの投稿",
+  },
+
+  // ---- Report-type labels (display only — stored keys stay English) ----
+  "report.clean": {
+    en: "Clean", es: "Limpio", fr: "Propre", de: "Sauber", ja: "清潔",
+  },
+  "report.dirty": {
+    en: "Dirty", es: "Sucio", fr: "Sale", de: "Schmutzig", ja: "汚れている",
+  },
+  "report.needs_supplies": {
+    en: "Needs supplies", es: "Faltan suministros", fr: "Manque de fournitures",
+    de: "Nachschub nötig", ja: "備品切れ",
+  },
+  "report.out_of_order": {
+    en: "Out of order", es: "Fuera de servicio", fr: "Hors service",
+    de: "Außer Betrieb", ja: "故障中",
+  },
+  "report.not_here": {
+    en: "Doesn't exist", es: "No existe", fr: "N'existe pas",
+    de: "Existiert nicht", ja: "存在しない",
+  },
+
+  // ---- Facilities / fixtures ----
+  "fixture.stalls": {
+    en: "Stalls", es: "Cabinas", fr: "Cabines", de: "Kabinen", ja: "個室",
+  },
+  "fixture.sink": {
+    en: "Sink", es: "Lavabo", fr: "Lavabo", de: "Waschbecken", ja: "洗面台",
+  },
+  "fixture.paper_towels": {
+    en: "Paper towels", es: "Toallas de papel", fr: "Essuie-mains",
+    de: "Papierhandtücher", ja: "ペーパータオル",
+  },
+  "fixture.changing_table": {
+    en: "Changing table", es: "Cambiador", fr: "Table à langer",
+    de: "Wickeltisch", ja: "おむつ交換台",
+  },
+  "facilities.none": {
+    en: "No facility details yet — know this bathroom?",
+    es: "Sin detalles aún — ¿conoces este baño?",
+    fr: "Pas encore de détails — vous connaissez ces toilettes ?",
+    de: "Noch keine Details — kennst du dieses WC?",
+    ja: "設備情報はまだありません — この場所を知っていますか？",
+  },
+  "facilities.edit": {
+    en: "Edit facilities", es: "Editar instalaciones", fr: "Modifier les équipements",
+    de: "Ausstattung bearbeiten", ja: "設備を編集",
+  },
+  "facilities.add": {
+    en: "Add facilities", es: "Añadir instalaciones", fr: "Ajouter des équipements",
+    de: "Ausstattung hinzufügen", ja: "設備を追加",
+  },
+  "facilities.yourEdits": {
+    en: "your edits", es: "tus datos", fr: "vos données", de: "deine Angaben", ja: "あなたの編集",
+  },
+  "facilities.dontKnow": {
+    en: "Don't know", es: "No sé", fr: "Je ne sais pas", de: "Weiß nicht", ja: "不明",
+  },
+
+  // ---- Common ----
+  "common.yes": { en: "Yes", es: "Sí", fr: "Oui", de: "Ja", ja: "はい" },
+  "common.no": { en: "No", es: "No", fr: "Non", de: "Nein", ja: "いいえ" },
+  "common.save": { en: "Save", es: "Guardar", fr: "Enregistrer", de: "Speichern", ja: "保存" },
+  "common.cancel": { en: "Cancel", es: "Cancelar", fr: "Annuler", de: "Abbrechen", ja: "キャンセル" },
+
+  // ---- Photos + cleanliness ----
+  "photos.empty": {
+    en: "No photos yet — be the first.",
+    es: "Aún no hay fotos — sube la primera.",
+    fr: "Pas encore de photos — soyez le premier.",
+    de: "Noch keine Fotos — mach das erste.",
+    ja: "まだ写真がありません — 最初の一枚を。",
+  },
+  "photos.upload": {
+    en: "Upload a photo", es: "Subir una foto", fr: "Ajouter une photo",
+    de: "Foto hochladen", ja: "写真をアップロード",
+  },
+  "clean.none": {
+    en: "No cleanliness reports yet.",
+    es: "Aún no hay informes de limpieza.",
+    fr: "Pas encore de signalements de propreté.",
+    de: "Noch keine Sauberkeitsmeldungen.",
+    ja: "清掃報告はまだありません。",
+  },
+  "clean.lastPrefix": {
+    en: "Last reported clean", es: "Última vez limpio", fr: "Propre pour la dernière fois",
+    de: "Zuletzt sauber gemeldet", ja: "最後に清潔と報告：",
+  },
+  "clean.reportsTotal": {
+    en: "{n} reports total", es: "{n} informes en total", fr: "{n} signalements",
+    de: "{n} Meldungen gesamt", ja: "計{n}件",
+  },
+  "clean.reportNow": {
+    en: "Report it's clean now", es: "Informar que está limpio",
+    fr: "Signaler que c'est propre", de: "Als sauber melden", ja: "今きれいだと報告",
+  },
+
+  // ---- Voice ----
+  "voice.label": { en: "Voice", es: "Voz", fr: "Voix", de: "Sprache", ja: "音声" },
+  "voice.listening": {
+    en: "Listening…", es: "Escuchando…", fr: "Écoute…", de: "Höre zu…", ja: "聞き取り中…",
   },
 
   // ---- Details panel section headings ----

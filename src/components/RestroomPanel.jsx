@@ -159,7 +159,7 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
         <div className="modal-meta">
           {restroom.distance != null && (
             <span className="meta-item">
-              <span aria-hidden="true">📍</span> {formatDistance(restroom.distance)} away
+              <span aria-hidden="true">📍</span> {formatDistance(restroom.distance)} {t("hero.away")}
             </span>
           )}
           {score !== 0 && (
@@ -184,32 +184,32 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
 
         <div className="modal-badges">
           {restroom.accessible && (
-            <span className="badge badge-accessible">♿ Accessible</span>
+            <span className="badge badge-accessible">♿ {t("filter.accessible")}</span>
           )}
           {restroom.unisex && (
-            <span className="badge badge-unisex">⚧ Gender Neutral</span>
+            <span className="badge badge-unisex">⚧ {t("filter.unisex")}</span>
           )}
           {restroom.fee === false && (
-            <span className="badge badge-free">Free</span>
+            <span className="badge badge-free">{t("filter.free")}</span>
           )}
           {restroom.fee === true && (
-            <span className="badge badge-paid">Paid</span>
+            <span className="badge badge-paid">{t("badge.paid")}</span>
           )}
           {restroom.single_occupant === true && (
-            <span className="badge badge-private">🔒 Private (single-occupant)</span>
+            <span className="badge badge-private">🔒 {t("filter.private")}</span>
           )}
           {restroom.family === true && (
-            <span className="badge badge-family">👨‍👩‍👧 Family-friendly</span>
+            <span className="badge badge-family">👨‍👩‍👧 {t("badge.family")}</span>
           )}
           {(() => {
             const { isOpen, knownStatus } = isOpenNow(restroom.opening_hours);
             if (!knownStatus) return null;
             return isOpen
-              ? <span className="badge badge-open">🟢 Open now</span>
-              : <span className="badge badge-closed">🔴 Closed now</span>;
+              ? <span className="badge badge-open">🟢 {t("filter.openNow")}</span>
+              : <span className="badge badge-closed">🔴 {t("badge.closed")}</span>;
           })()}
           {!restroom.accessible && !restroom.unisex && restroom.fee == null && !restroom.opening_hours && (
-            <span className="badge badge-none">No info</span>
+            <span className="badge badge-none">{t("badge.noInfo")}</span>
           )}
         </div>
 
@@ -258,7 +258,7 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
               ))}
             </div>
           ) : (
-            <p className="muted">No photos yet — be the first.</p>
+            <p className="muted">{t("photos.empty")}</p>
           )}
           <input
             ref={fileRef}
@@ -269,7 +269,7 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
             hidden
           />
           <button className="btn-secondary" onClick={onPickFile}>
-            📷 Upload a photo
+            📷 {t("photos.upload")}
           </button>
           {uploadError && <p className="upload-error">{uploadError}</p>}
         </section>
@@ -304,25 +304,25 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
           };
           return (
             <section className="modal-section">
-              <h3>{t("panel.facilities")} {merged.edited && <span className="fixtures-edited-tag">your edits</span>}</h3>
+              <h3>{t("panel.facilities")} {merged.edited && <span className="fixtures-edited-tag">{t("facilities.yourEdits")}</span>}</h3>
               {known.length > 0 ? (
                 <div className="fixtures-row">
                   {known.map((f) => (
                     <span key={f.key} className="fixtures-pill">
                       <span aria-hidden="true">{f.icon}</span>{" "}
                       {f.kind === "count"
-                        ? `${merged[f.key]} ${f.label.toLowerCase()}`
-                        : `${f.label}: ${merged[f.key] ? "yes" : "no"}`}
+                        ? `${merged[f.key]} ${t(`fixture.${f.key}`).toLowerCase()}`
+                        : `${t(`fixture.${f.key}`)}: ${merged[f.key] ? t("common.yes").toLowerCase() : t("common.no").toLowerCase()}`}
                     </span>
                   ))}
                 </div>
               ) : (
-                <p className="muted">No facility details yet — know this bathroom?</p>
+                <p className="muted">{t("facilities.none")}</p>
               )}
               {fixtureDraft ? (
                 <div className="fixtures-form">
                   <label className="fixtures-field">
-                    <span>🚻 Stalls</span>
+                    <span>🚻 {t("fixture.stalls")}</span>
                     <input
                       type="number"
                       min="0"
@@ -335,25 +335,25 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
                   </label>
                   {FIXTURE_FIELDS.filter((f) => f.kind === "bool").map((f) => (
                     <label key={f.key} className="fixtures-field">
-                      <span>{f.icon} {f.label}</span>
+                      <span>{f.icon} {t(`fixture.${f.key}`)}</span>
                       <select
                         value={fixtureDraft[f.key]}
                         onChange={(e) => setFixtureDraft({ ...fixtureDraft, [f.key]: e.target.value })}
                       >
-                        <option value="">Don't know</option>
-                        <option value="yes">Yes</option>
-                        <option value="no">No</option>
+                        <option value="">{t("facilities.dontKnow")}</option>
+                        <option value="yes">{t("common.yes")}</option>
+                        <option value="no">{t("common.no")}</option>
                       </select>
                     </label>
                   ))}
                   <div className="fixtures-form-actions">
-                    <button className="btn-secondary" onClick={() => setFixtureDraft(null)}>Cancel</button>
-                    <button className="btn-secondary fixtures-save" onClick={save}>Save</button>
+                    <button className="btn-secondary" onClick={() => setFixtureDraft(null)}>{t("common.cancel")}</button>
+                    <button className="btn-secondary fixtures-save" onClick={save}>{t("common.save")}</button>
                   </div>
                 </div>
               ) : (
                 <button className="btn-secondary" onClick={openEdit}>
-                  ✏️ {known.length > 0 ? "Edit facilities" : "Add facilities"}
+                  ✏️ {known.length > 0 ? t("facilities.edit") : t("facilities.add")}
                 </button>
               )}
             </section>
@@ -372,7 +372,7 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
                 title={`+${meta.points} pts`}
               >
                 <span className="condition-icon" aria-hidden="true">{meta.icon}</span>
-                <span className="condition-label">{meta.label}</span>
+                <span className="condition-label">{t(`report.${type}`)}</span>
                 <span className="condition-pts">+{meta.points}</span>
               </button>
             ))}
@@ -382,7 +382,7 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
               <span className="muted">Latest reports:</span>
               {bathState.map((r) => (
                 <span key={r.type} className="condition-pill">
-                  {REPORT_TYPES[r.type].icon} {REPORT_TYPES[r.type].label}
+                  {REPORT_TYPES[r.type].icon} {t(`report.${r.type}`)}
                   <span className="condition-when">{formatRelative(r.ts)}</span>
                 </span>
               ))}
@@ -395,7 +395,7 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
                 .filter(([type]) => REPORT_TYPES[type])
                 .map(([type, n]) => (
                   <span key={type} className="condition-pill">
-                    {REPORT_TYPES[type].icon} {REPORT_TYPES[type].label}
+                    {REPORT_TYPES[type].icon} {t(`report.${type}`)}
                     <span className="condition-when">×{n}</span>
                   </span>
                 ))}
@@ -409,11 +409,11 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
           <h3>{t("panel.cleanliness")}</h3>
           {cleaning ? (
             <p className="muted">
-              Last reported clean <strong>{formatRelative(cleaning.lastCleanedAt)}</strong>
-              {cleaning.count > 1 && ` · ${cleaning.count} reports total`}
+              {t("clean.lastPrefix")} <strong>{formatRelative(cleaning.lastCleanedAt)}</strong>
+              {cleaning.count > 1 && ` · ${t("clean.reportsTotal", { n: cleaning.count })}`}
             </p>
           ) : (
-            <p className="muted">No cleanliness reports yet.</p>
+            <p className="muted">{t("clean.none")}</p>
           )}
           {bounty.eligible && (
             <div className="bounty-banner" title="Future feature — not yet payable">
@@ -422,7 +422,7 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
             </div>
           )}
           <button className="btn-secondary" onClick={onClean}>
-            🧼 Report it's clean now
+            🧼 {t("clean.reportNow")}
           </button>
         </section>
 
