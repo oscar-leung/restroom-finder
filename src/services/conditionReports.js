@@ -17,6 +17,8 @@
  *   gg_points_v1:     { total: number, lifetime: number, byType: {...} }
  */
 
+import { postReport } from "./backend";
+
 const COND_KEY = "gg_conditions_v1";
 const POINTS_KEY = "gg_points_v1";
 const SUPPRESS_KEY = "gg_suppressed_v1";
@@ -80,6 +82,9 @@ export function reportCondition(bathroomId, type) {
 
   // "Doesn't exist" also hides the entry from this device's results
   if (type === "not_here") suppress(bathroomId);
+
+  // Mirror to the shared backend when configured (no-op otherwise)
+  postReport(bathroomId, type);
 
   // Award points
   const pts = readPoints();

@@ -11,6 +11,7 @@ import { FIXTURE_FIELDS, getFixtureEdits, saveFixtureEdits, getMergedFixtures } 
 import { trackEvent } from "../utils/analytics";
 import Reviews from "./Reviews";
 import { useI18n } from "../i18n";
+import { isBackendOn, fetchRemoteReports } from "../services/backend";
 
 /**
  * RestroomPanel — full details modal for a selected restroom.
@@ -39,6 +40,9 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
   const [fixtureSavedAt, setFixtureSavedAt] = useState(0); // bump to re-read merged view
   const fileRef = useRef(null);
 
+  // Cross-user reports from the backend (null until it's deployed)
+  const [remoteReports, setRemoteReports] = useState(null);
+
   useEffect(() => {
     if (restroom) {
       setCleaning(getCleaningLog(restroom.id));
@@ -47,6 +51,12 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
       // photos are async (IndexedDB)
       let cancelled = false;
       getPhotos(restroom.id).then((p) => { if (!cancelled) setPhotos(p); });
+      setRemoteReports(null);
+      if (isBackendOn()) {
+        fetchRemoteReports(restroom.id).then((r) => {
+          if (!cancelled && r && Object.keys(r.counts || {}).length) setRemoteReports(r);
+        });
+      }
       return () => { cancelled = true; };
     }
   }, [restroom]);
@@ -369,6 +379,19 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
                   <span className="condition-when">{formatRelative(r.ts)}</span>
                 </span>
               ))}
+            </div>
+          )}
+          {remoteReports && (
+            <div className="condition-current condition-community">
+              <span className="muted">Community (24h):</span>
+              {Object.entries(remoteReports.counts)
+                .filter(([type]) => REPORT_TYPES[type])
+                .map(([type, n]) => (
+                  <span key={type} className="condition-pill">
+                    {REPORT_TYPES[type].icon} {REPORT_TYPES[type].label}
+                    <span className="condition-when">×{n}</span>
+                  </span>
+                ))}
             </div>
           )}
           {reportToast && <div className="condition-toast">{reportToast}</div>}

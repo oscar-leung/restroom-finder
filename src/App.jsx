@@ -36,6 +36,7 @@ import { touchStreak, getStreak } from "./services/streak";
 import { getTheme, applyTheme, toggleTheme } from "./services/theme";
 import { getComfort, setComfort, toggleComfort } from "./services/comfort";
 import { getPoints, isSuppressed, getSuppressedCount, clearSuppressed } from "./services/conditionReports";
+import { postVisit } from "./services/backend";
 import { isOpenNow } from "./utils/hours";
 import { formatDistance } from "./utils/distance";
 import { trackEvent } from "./utils/analytics";
@@ -289,6 +290,7 @@ function App() {
   const handleGo = (restroom) => {
     if (!restroom) return;
     recordUsage();
+    postVisit(restroom.id); // anonymous cross-user popularity (no-op w/o backend)
     const updated = recordVisit(restroom.id);
     setVisits(getAllVisits());
     // Streak: advance the daily flame counter
