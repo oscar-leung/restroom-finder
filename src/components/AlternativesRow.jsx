@@ -3,6 +3,7 @@ import { getStats } from "../services/reviews";
 import { getConditionWarning } from "../services/conditionReports";
 import { isOpenNow } from "../utils/hours";
 import MiniMap from "./MiniMap";
+import { useI18n } from "../i18n";
 
 /**
  * AlternativesRow — horizontal scroll of other nearby restrooms.
@@ -14,12 +15,14 @@ import MiniMap from "./MiniMap";
  *   onPromote    – callback when user taps a card → make this one primary
  */
 export default function AlternativesRow({ restrooms, onPromote }) {
+  // Hook must run unconditionally — keep it above the early return
+  const { t } = useI18n();
   const alternatives = restrooms.slice(1, 7);
   if (alternatives.length === 0) return null;
 
   return (
     <section className="alts">
-      <h3 className="alts-title">Or pick another nearby</h3>
+      <h3 className="alts-title">{t("alts.title")}</h3>
       <div className="alts-scroll">
         {alternatives.map((r) => {
           const stats = getStats(r.id);

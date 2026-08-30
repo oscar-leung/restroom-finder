@@ -10,6 +10,7 @@ import { reportCondition, getBathroomState, REPORT_TYPES } from "../services/con
 import { FIXTURE_FIELDS, getFixtureEdits, saveFixtureEdits, getMergedFixtures } from "../services/fixtures";
 import { trackEvent } from "../utils/analytics";
 import Reviews from "./Reviews";
+import { useI18n } from "../i18n";
 
 /**
  * RestroomPanel — full details modal for a selected restroom.
@@ -20,6 +21,7 @@ import Reviews from "./Reviews";
  *   onClose   – close callback
  */
 export default function RestroomPanel({ restroom, visitRecord, onClose, onAchievement }) {
+  const { t } = useI18n();
   const [favorited, setFavorited] = useState(() =>
     restroom ? isFavorite(restroom.id) : false
   );
@@ -196,7 +198,7 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
 
         {restroom.opening_hours && (
           <section className="modal-section">
-            <h3>Hours</h3>
+            <h3>{t("panel.hours")}</h3>
             <p>{formatHours(restroom.opening_hours)}</p>
             {(() => {
               // "Open until 17:00" / "Opens at 9:00" — null while the
@@ -209,21 +211,21 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
 
         {restroom.directions && (
           <section className="modal-section">
-            <h3>Directions</h3>
+            <h3>{t("panel.directions")}</h3>
             <p>{restroom.directions}</p>
           </section>
         )}
 
         {restroom.comment && (
           <section className="modal-section">
-            <h3>Notes</h3>
+            <h3>{t("panel.notes")}</h3>
             <p>{restroom.comment}</p>
           </section>
         )}
 
         {/* Photos section */}
         <section className="modal-section">
-          <h3>Photos</h3>
+          <h3>{t("panel.photos")}</h3>
           {photos.length > 0 ? (
             <div className="photo-grid">
               {photos.map((p) => (
@@ -285,7 +287,7 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
           };
           return (
             <section className="modal-section">
-              <h3>Facilities {merged.edited && <span className="fixtures-edited-tag">your edits</span>}</h3>
+              <h3>{t("panel.facilities")} {merged.edited && <span className="fixtures-edited-tag">your edits</span>}</h3>
               {known.length > 0 ? (
                 <div className="fixtures-row">
                   {known.map((f) => (
@@ -343,7 +345,7 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
 
         {/* Condition report — GasBuddy-style one-tap status reporting */}
         <section className="modal-section">
-          <h3>Report condition (earn points)</h3>
+          <h3>{t("panel.report")}</h3>
           <div className="condition-grid">
             {Object.entries(REPORT_TYPES).map(([type, meta]) => (
               <button
@@ -374,7 +376,7 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
 
         {/* Cleaning log + bounty */}
         <section className="modal-section">
-          <h3>Cleanliness</h3>
+          <h3>{t("panel.cleanliness")}</h3>
           {cleaning ? (
             <p className="muted">
               Last reported clean <strong>{formatRelative(cleaning.lastCleanedAt)}</strong>
@@ -401,7 +403,7 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
           rel="noopener noreferrer"
           onClick={() => trackEvent("directions_opened", { id: String(restroom.id) })}
         >
-          Get Directions →
+          {t("panel.getDirections")}
         </a>
 
         <a
@@ -411,7 +413,7 @@ export default function RestroomPanel({ restroom, visitRecord, onClose, onAchiev
           rel="noopener noreferrer"
           onClick={() => trackEvent("street_view_opened", { id: String(restroom.id) })}
         >
-          🛣️ See on Street View
+          🛣️ {t("panel.streetView")}
         </a>
 
         <Reviews restroomId={restroom.id} />

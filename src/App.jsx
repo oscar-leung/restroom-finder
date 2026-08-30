@@ -41,12 +41,16 @@ import { formatDistance } from "./utils/distance";
 import { trackEvent } from "./utils/analytics";
 import { isFlagOn } from "./utils/featureFlags";
 import { normalizeCountry } from "./utils/country";
+import { useI18n, LOCALES } from "./i18n";
 import "./index.css";
 
 // Fallback if geolocation denied (San Francisco)
 const DEFAULT_POSITION = { latitude: 37.7749, longitude: -122.4194 };
 
 function App() {
+  // i18n — locale-aware strings everywhere below
+  const { t, locale, setLocale } = useI18n();
+
   // --- Location ---
   const {
     position: geoPosition,
@@ -342,7 +346,7 @@ function App() {
     return (
       <div className="status-screen">
         <div className="spinner" />
-        <p>Finding your location…</p>
+        <p>{t("status.finding")}</p>
       </div>
     );
   }
@@ -351,7 +355,7 @@ function App() {
     return (
       <div className="status-screen">
         <div className="spinner" />
-        <p>Loading…</p>
+        <p>{t("status.loading")}</p>
       </div>
     );
   }
@@ -359,10 +363,10 @@ function App() {
   if (apiError) {
     return (
       <div className="status-screen">
-        <h2>Couldn't load restrooms</h2>
+        <h2>{t("status.loadFail")}</h2>
         <p>{apiError}</p>
         <button className="cta-button" onClick={() => window.location.reload()}>
-          Try again
+          {t("status.tryAgain")}
         </button>
       </div>
     );
@@ -379,10 +383,10 @@ function App() {
   if (sorted.length === 0) {
     return (
       <div className="status-screen">
-        <h2>No restrooms found nearby</h2>
-        <p>Try refreshing your location.</p>
+        <h2>{t("status.none")}</h2>
+        <p>{t("status.refreshHint")}</p>
         <button className="cta-button" onClick={handleRefresh}>
-          Refresh
+          {t("status.refresh")}
         </button>
       </div>
     );
@@ -406,10 +410,26 @@ function App() {
           <img className="app-icon-img" src={`${import.meta.env.BASE_URL}icon-192.svg`} alt="" width="32" height="32" />
           <h1>
             Gotta Go
-            <span className="app-tag" aria-hidden="true">closest bathroom, instantly</span>
+            <span className="app-tag" aria-hidden="true">{t("app.tagline")}</span>
           </h1>
         </div>
         <div className="header-right">
+          <select
+            className="lang-select"
+            value={locale}
+            onChange={(e) => {
+              setLocale(e.target.value);
+              trackEvent("locale_changed", { locale: e.target.value });
+            }}
+            aria-label="Language"
+            title="Language"
+          >
+            {LOCALES.map((l) => (
+              <option key={l.code} value={l.code}>
+                {l.flag} {l.code.toUpperCase()}
+              </option>
+            ))}
+          </select>
           {points.total > 0 && (
             <div
               className="points-badge"
@@ -459,21 +479,21 @@ function App() {
 
       {usingFallback && (
         <div className="fallback-banner">
-          Showing San Francisco — enable location for your area
+          {t("banner.fallback")}
         </div>
       )}
 
       {!isOnline && (
         <div className="offline-banner">
-          📡 Offline — showing your last cached bathrooms
+          📡 {t("banner.offline")}
         </div>
       )}
 
       {usingSearchedLocation && (
         <div className="searched-banner">
-          🔎 Showing results near <strong>{searchedLocation.displayName?.split(",").slice(0, 2).join(",")}</strong>
+          🔎 {t("banner.searchedPrefix")} <strong>{searchedLocation.displayName?.split(",").slice(0, 2).join(",")}</strong>
           <button onClick={() => setSearchedLocation(null)} className="searched-clear">
-            back to me
+            {t("banner.backToMe")}
           </button>
         </div>
       )}
@@ -501,9 +521,9 @@ function App() {
           promotions are pointer-driven and otherwise silent. */}
       <div className="sr-only" role="status" aria-live="polite">
         {hero &&
-          `${safeIndex === 0 ? "Closest" : `Number ${safeIndex + 1} nearest`}: ${
-            hero.name || "unnamed restroom"
-          }, ${formatDistance(hero.distance)} away`}
+          `${safeIndex === 0 ? t("hero.closest") : t("hero.nth", { n: safeIndex + 1 })}: ${
+            hero.name || "?"
+          }, ${formatDistance(hero.distance)} ${t("hero.away")}`}
       </div>
 
       <main className="scroll-area">
@@ -518,18 +538,18 @@ function App() {
         {/* Visible total + nearby bucket counts (Legal-Walls-style) */}
         <div className="count-summary">
           <span className="count-num">{bucketCounts.total}</span>
-          <span className="count-label">nearby</span>
+          <span className="count-label">{t("count.nearby")}</span>
           {bucketCounts.close > 0 && (
             <>
               <span className="count-divider" />
               <span className="count-bucket">
-                <strong>{bucketCounts.close}</strong> within 500&thinsp;m
+                <strong>{bucketCounts.close}</strong> {t("count.within", { d: "500 m" })}
               </span>
             </>
           )}
           {bucketCounts.med > bucketCounts.close && (
             <span className="count-bucket count-bucket-dim">
-              <strong>{bucketCounts.med}</strong> within 1&thinsp;km
+              <strong>{bucketCounts.med}</strong> {t("count.within", { d: "1 km" })}
             </span>
           )}
         </div>
@@ -537,7 +557,7 @@ function App() {
         {getSuppressedCount() > 0 && (
           <div className="suppressed-row">
             <span aria-hidden="true">👻</span>{" "}
-            {getSuppressedCount()} hidden as “doesn't exist”
+            {t("suppressed.hidden", { n: getSuppressedCount() })}
             <button
               className="suppressed-restore"
               onClick={() => {
@@ -546,7 +566,7 @@ function App() {
                 trackEvent("suppressed_restored");
               }}
             >
-              Restore
+              {t("suppressed.restore")}
             </button>
           </div>
         )}
@@ -611,7 +631,7 @@ function App() {
             trackEvent("map_opened", { restroom_count: sorted.length });
           }}
         >
-          🗺️  View all {sorted.length} on map
+          🗺️  {t("map.viewAll", { n: sorted.length })}
         </button>
 
         <button
@@ -624,7 +644,7 @@ function App() {
           title={!geoPosition ? "Enable location to add a bathroom" : "Add a bathroom at your current location"}
         >
           <span className="plus" aria-hidden="true">+</span>
-          Add a bathroom here
+          {t("add.button")}
         </button>
 
         <a
@@ -634,7 +654,7 @@ function App() {
           rel="noopener noreferrer"
           onClick={() => trackEvent("tip_clicked")}
         >
-          ☕ Tip the dev
+          ☕ {t("tip.button")}
         </a>
 
         <p className="footer-note">
@@ -668,7 +688,7 @@ function App() {
           aria-label={`Show map (${sorted.length} bathrooms)`}
         >
           <span className="map-pill-icon">🗺️</span>
-          <span className="map-pill-label">Map</span>
+          <span className="map-pill-label">{t("map.label")}</span>
           <span className="map-pill-count">{sorted.length}</span>
         </button>
       )}

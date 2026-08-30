@@ -4,6 +4,7 @@ import { bearing, bearingToCardinal } from "../services/routing";
 import { trackEvent } from "../utils/analytics";
 import { getFlag } from "../utils/featureFlags";
 import { isOpenNow } from "../utils/hours";
+import { useI18n } from "../i18n";
 
 /**
  * SimpleHero — the radically minimal hero for Simple Mode.
@@ -32,6 +33,8 @@ export default function SimpleHero({
   onNext,
   onShowMore,
 }) {
+  // Hook must run unconditionally — keep it above the early return
+  const { t } = useI18n();
   if (!restroom) return null;
 
   const variant = getFlag("simple_hero_variant");
@@ -45,13 +48,13 @@ export default function SimpleHero({
   if (knownStatus) {
     signals.push(
       isOpen
-        ? { key: "open", cls: "open", label: "🟢 Open now" }
-        : { key: "closed", cls: "closed", label: "🔴 Closed" }
+        ? { key: "open", cls: "open", label: `🟢 ${t("filter.openNow")}` }
+        : { key: "closed", cls: "closed", label: `🔴 ${t("badge.closed")}` }
     );
   }
-  if (restroom.fee === false) signals.push({ key: "free", cls: "free", label: "Free" });
-  if (restroom.accessible) signals.push({ key: "accessible", cls: "accessible", label: "♿ Accessible" });
-  if (restroom.unisex) signals.push({ key: "unisex", cls: "unisex", label: "⚧ Gender-neutral" });
+  if (restroom.fee === false) signals.push({ key: "free", cls: "free", label: t("filter.free") });
+  if (restroom.accessible) signals.push({ key: "accessible", cls: "accessible", label: `♿ ${t("filter.accessible")}` });
+  if (restroom.unisex) signals.push({ key: "unisex", cls: "unisex", label: `⚧ ${t("filter.unisex")}` });
   const cardinal =
     userPosition && restroom.latitude
       ? bearingToCardinal(
@@ -90,11 +93,11 @@ export default function SimpleHero({
       <div className="simple-meta">
         <span className="simple-distance">{formatDistance(restroom.distance)}</span>
         <span className="simple-dot">·</span>
-        <span className="simple-walk">{walk} min walk</span>
+        <span className="simple-walk">{t("simple.minWalk", { n: walk })}</span>
         {variant === "directional" && cardinal && (
           <>
             <span className="simple-dot">·</span>
-            <span className="simple-direction">go {cardinal}</span>
+            <span className="simple-direction">{t("simple.goDirection", { dir: cardinal })}</span>
           </>
         )}
       </div>
@@ -122,13 +125,13 @@ export default function SimpleHero({
 
       {variant === "dual-line" && onNext && (
         <button className="simple-next-link" onClick={onNext}>
-          Not it? Show next →
+          {t("simple.next")}
         </button>
       )}
 
       {onShowMore && (
         <button className="simple-more-link" onClick={onShowMore}>
-          More options
+          {t("simple.more")}
         </button>
       )}
     </div>

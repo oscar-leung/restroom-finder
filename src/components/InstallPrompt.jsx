@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n";
+
 /**
  * InstallPrompt — bottom-sheet nudge to add Gotta Go to the home screen.
  *
@@ -7,6 +9,7 @@
  * Dismissing it once silences it permanently on this device.
  */
 export default function InstallPrompt({ mode, onInstall, onDismiss }) {
+  const { t } = useI18n();
   return (
     <div className="install-prompt" role="dialog" aria-label="Install Gotta Go">
       <button
@@ -20,22 +23,23 @@ export default function InstallPrompt({ mode, onInstall, onDismiss }) {
       <div className="install-prompt-body">
         <span className="install-prompt-icon" aria-hidden="true">📲</span>
         <div className="install-prompt-text">
-          <strong>Faster next time you gotta go</strong>
+          <strong>{t("install.title")}</strong>
           {mode === "ios" ? (
             <p>
-              Tap <span className="install-share-glyph" aria-label="the Share button">⎋</span>{" "}
-              then <strong>Add to Home Screen</strong> — opens instantly,
-              works offline.
+              {t("install.iosTap")}{" "}
+              <span className="install-share-glyph" aria-label="the Share button">⎋</span>{" "}
+              {t("install.iosThen")} <strong>{t("install.iosAction")}</strong>{" "}
+              {t("install.iosSuffix")}
             </p>
           ) : (
-            <p>Install the app — opens instantly, works offline, no store needed.</p>
+            <p>{t("install.body")}</p>
           )}
         </div>
       </div>
 
       {mode === "native" && (
         <button className="install-prompt-cta" onClick={onInstall}>
-          Install
+          {t("install.cta")}
         </button>
       )}
     </div>

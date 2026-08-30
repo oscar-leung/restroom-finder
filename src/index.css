@@ -3696,3 +3696,21 @@ select.chip-select {
 [data-theme="midnight"] .route-step {
   background: var(--bg-muted);
 }
+
+/* ===== Language switcher ===== */
+.lang-select {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+[data-theme="midnight"] .lang-select {
+  background: var(--bg-muted);
+}

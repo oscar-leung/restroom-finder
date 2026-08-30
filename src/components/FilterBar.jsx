@@ -1,4 +1,5 @@
 import { trackEvent } from "../utils/analytics";
+import { useI18n } from "../i18n";
 
 /**
  * FilterBar — horizontal row of toggle chips.
@@ -12,6 +13,8 @@ import { trackEvent } from "../utils/analytics";
  *                    the country_filter flag — pass undefined when off)
  */
 export default function FilterBar({ filters, onChange, onLocate, countryOptions }) {
+  const { t } = useI18n();
+
   const toggle = (key) => {
     const next = { ...filters, [key]: !filters[key] };
     trackEvent("filter_toggled", { filter: key, on: next[key] });
@@ -23,75 +26,31 @@ export default function FilterBar({ filters, onChange, onLocate, countryOptions 
     onChange({ ...filters, country: value });
   };
 
+  // Declarative chip list keeps the markup in one place
+  const chips = [
+    { key: "accessible", icon: "♿", label: t("filter.accessible") },
+    { key: "unisex", icon: "⚧", label: t("filter.unisex") },
+    { key: "free", icon: "✓", label: t("filter.free"), title: "Hide bathrooms that charge a fee" },
+    { key: "openNow", icon: "🕐", label: t("filter.openNow"), title: "Only show bathrooms open right now" },
+    { key: "singleOccupant", icon: "🔒", label: t("filter.private"), title: "Locked single-person bathrooms only" },
+    { key: "bench", icon: "🪑", label: t("filter.bench"), title: "Only show bathrooms with a bench within 60m — somewhere to rest on the way" },
+    { key: "noStairs", icon: "🚷", label: t("filter.noStairs"), title: "Hide bathrooms known to be on another floor or underground" },
+  ];
+
   return (
     <div className="filter-bar">
-      <button
-        className={`chip ${filters.accessible ? "chip-active" : ""}`}
-        onClick={() => toggle("accessible")}
-        aria-pressed={!!filters.accessible}
-      >
-        <span className="chip-icon" aria-hidden="true">♿</span>
-        Accessible
-      </button>
-
-      <button
-        className={`chip ${filters.unisex ? "chip-active" : ""}`}
-        onClick={() => toggle("unisex")}
-        aria-pressed={!!filters.unisex}
-      >
-        <span className="chip-icon" aria-hidden="true">⚧</span>
-        Gender Neutral
-      </button>
-
-      <button
-        className={`chip ${filters.free ? "chip-active" : ""}`}
-        onClick={() => toggle("free")}
-        aria-pressed={!!filters.free}
-        title="Hide bathrooms that charge a fee"
-      >
-        <span className="chip-icon" aria-hidden="true">✓</span>
-        Free
-      </button>
-
-      <button
-        className={`chip ${filters.openNow ? "chip-active" : ""}`}
-        onClick={() => toggle("openNow")}
-        aria-pressed={!!filters.openNow}
-        title="Only show bathrooms open right now"
-      >
-        <span className="chip-icon" aria-hidden="true">🕐</span>
-        Open now
-      </button>
-
-      <button
-        className={`chip ${filters.singleOccupant ? "chip-active" : ""}`}
-        onClick={() => toggle("singleOccupant")}
-        aria-pressed={!!filters.singleOccupant}
-        title="Locked single-person bathrooms only"
-      >
-        <span className="chip-icon" aria-hidden="true">🔒</span>
-        Private
-      </button>
-
-      <button
-        className={`chip ${filters.bench ? "chip-active" : ""}`}
-        onClick={() => toggle("bench")}
-        aria-pressed={!!filters.bench}
-        title="Only show bathrooms with a bench within 60m — somewhere to rest on the way"
-      >
-        <span className="chip-icon" aria-hidden="true">🪑</span>
-        Bench nearby
-      </button>
-
-      <button
-        className={`chip ${filters.noStairs ? "chip-active" : ""}`}
-        onClick={() => toggle("noStairs")}
-        aria-pressed={!!filters.noStairs}
-        title="Hide bathrooms known to be on another floor or underground"
-      >
-        <span className="chip-icon" aria-hidden="true">🚷</span>
-        No stairs
-      </button>
+      {chips.map((c) => (
+        <button
+          key={c.key}
+          className={`chip ${filters[c.key] ? "chip-active" : ""}`}
+          onClick={() => toggle(c.key)}
+          aria-pressed={!!filters[c.key]}
+          title={c.title}
+        >
+          <span className="chip-icon" aria-hidden="true">{c.icon}</span>
+          {c.label}
+        </button>
+      ))}
 
       {countryOptions && countryOptions.length >= 2 && (
         <select
@@ -100,7 +59,7 @@ export default function FilterBar({ filters, onChange, onLocate, countryOptions 
           onChange={(e) => pickCountry(e.target.value)}
           aria-label="Filter by country"
         >
-          <option value="">🌍 All countries</option>
+          <option value="">🌍 {t("filter.allCountries")}</option>
           {countryOptions.map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}
@@ -109,7 +68,7 @@ export default function FilterBar({ filters, onChange, onLocate, countryOptions 
 
       <button className="chip chip-locate" onClick={onLocate} title="Recenter on my location">
         <span className="chip-icon" aria-hidden="true">📍</span>
-        Near me
+        {t("filter.nearMe")}
       </button>
     </div>
   );

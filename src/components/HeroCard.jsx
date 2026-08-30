@@ -8,6 +8,7 @@ import { walkingMinutes } from "../services/comfort";
 import { bearing, bearingToCardinal } from "../services/routing";
 import { isOpenNow } from "../utils/hours";
 import useSwipe from "../hooks/useSwipe";
+import { useI18n } from "../i18n";
 
 /**
  * HeroCard — the big "here's the closest restroom" card shown front-and-center.
@@ -40,6 +41,7 @@ export default function HeroCard({
   onPrev,
   onShowRoute,
 }) {
+  const { t } = useI18n();
   // Swipe hook — bind attaches pointer handlers + a live transform
   const { bind, offsetX, isDragging } = useSwipe({
     onSwipeLeft: () => {
@@ -100,7 +102,7 @@ export default function HeroCard({
   // Label changes when you've swiped off the closest:
   //   "CLOSEST RESTROOM" (at index 0)
   //   "#2 NEAREST" etc.
-  const label = index === 0 ? "CLOSEST RESTROOM" : `#${index + 1} NEAREST`;
+  const label = index === 0 ? t("hero.closest") : t("hero.nth", { n: index + 1 });
 
   // Dot indicator: show up to 6 dots (enough for the next-5 range)
   const dotCount = Math.min(total, 6);
@@ -125,12 +127,12 @@ export default function HeroCard({
       <div className="hero-stats">
         <div className="hero-stat">
           <div className="hero-stat-num">{formatDistance(restroom.distance)}</div>
-          <div className="hero-stat-label">away</div>
+          <div className="hero-stat-label">{t("hero.away")}</div>
         </div>
         <div className="hero-stat-divider" />
         <div className="hero-stat">
           <div className="hero-stat-num">{walkMins}</div>
-          <div className="hero-stat-label">min walk</div>
+          <div className="hero-stat-label">{t("hero.minWalk")}</div>
         </div>
         {cardinal != null && (
           <>
@@ -240,7 +242,7 @@ export default function HeroCard({
               onShowRoute();
             }}
           >
-            🗺️ Show route
+            🗺️ {t("hero.showRoute")}
           </button>
         )}
         <button
@@ -248,7 +250,7 @@ export default function HeroCard({
           onPointerDown={(e) => e.stopPropagation()}
           onClick={onDetails}
         >
-          More details
+          {t("hero.details")}
         </button>
       </div>
 
