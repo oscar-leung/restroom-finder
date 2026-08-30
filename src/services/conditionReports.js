@@ -109,4 +109,28 @@ export function getBathroomState(bathroomId) {
   return condensed;
 }
 
+/**
+ * Worst negative report in the last 24h — powers the ROADMAP P2 #20
+ * "warning badge outside the details modal". A "clean" report newer
+ * than every negative one clears the warning (the state improved).
+ * Reports are device-local until the backend ships, so this reflects
+ * what THIS user reported.
+ */
+export function getConditionWarning(bathroomId) {
+  const recent = getRecentReports(bathroomId, 24);
+  if (!recent.length) return null;
+  const negatives = recent.filter((r) => (REPORT_TYPES[r.type]?.weight ?? 0) < 0);
+  if (!negatives.length) return null;
+  const newestNegativeTs = Math.max(...negatives.map((r) => +new Date(r.ts)));
+  const clearedBy = recent.some(
+    (r) => r.type === "clean" && +new Date(r.ts) > newestNegativeTs
+  );
+  if (clearedBy) return null;
+  negatives.sort(
+    (a, b) => REPORT_TYPES[a.type].weight - REPORT_TYPES[b.type].weight
+  );
+  const worst = negatives[0];
+  return { type: worst.type, ts: worst.ts, ...REPORT_TYPES[worst.type] };
+}
+
 export function getPoints() { return readPoints(); }

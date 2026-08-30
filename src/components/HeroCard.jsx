@@ -3,6 +3,7 @@ import { formatDistance } from "../utils/distance";
 import { trackEvent } from "../utils/analytics";
 import { getFlag } from "../utils/featureFlags";
 import { getStats } from "../services/reviews";
+import { getConditionWarning } from "../services/conditionReports";
 import { walkingMinutes } from "../services/comfort";
 import { bearing, bearingToCardinal } from "../services/routing";
 import { isOpenNow } from "../utils/hours";
@@ -194,6 +195,18 @@ export default function HeroCard({
             👟 visited {visitCount}×
           </span>
         )}
+        {(() => {
+          const warn = getConditionWarning(restroom.id);
+          if (!warn) return null;
+          return (
+            <span
+              className="badge badge-condition-warn"
+              title={`You reported this ${warn.label.toLowerCase()} in the last 24h`}
+            >
+              {warn.icon} {warn.label}
+            </span>
+          );
+        })()}
       </div>
 
       <a

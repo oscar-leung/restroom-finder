@@ -3567,3 +3567,13 @@ select.chip-select {
   background: rgba(14, 165, 233, 0.18);
   color: #7dd3fc;
 }
+
+/* ===== Condition warning badge (P2 #20) ===== */
+.badge-condition-warn {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+[data-theme="midnight"] .badge-condition-warn {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fca5a5;
+}

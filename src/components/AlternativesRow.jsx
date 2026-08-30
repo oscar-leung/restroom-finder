@@ -1,5 +1,6 @@
 import { formatDistance } from "../utils/distance";
 import { getStats } from "../services/reviews";
+import { getConditionWarning } from "../services/conditionReports";
 import { isOpenNow } from "../utils/hours";
 import MiniMap from "./MiniMap";
 
@@ -22,6 +23,7 @@ export default function AlternativesRow({ restrooms, onPromote }) {
       <div className="alts-scroll">
         {alternatives.map((r) => {
           const stats = getStats(r.id);
+          const warn = getConditionWarning(r.id);
           const { isOpen, knownStatus } = isOpenNow(r.opening_hours);
           const address = [r.street, r.city].filter(Boolean).join(", ");
           return (
@@ -43,6 +45,11 @@ export default function AlternativesRow({ restrooms, onPromote }) {
               <div className="alt-icons">
                 {r.accessible && <span title="Accessible">♿</span>}
                 {r.senior_friendly && <span title="Senior-friendly">🧓</span>}
+                {warn && (
+                  <span title={`You reported this ${warn.label.toLowerCase()} in the last 24h`}>
+                    {warn.icon}
+                  </span>
+                )}
                 {r.unisex && <span title="Gender neutral">⚧</span>}
                 {r.fee === false && <span className="alt-free" title="Free">free</span>}
                 {knownStatus && (
