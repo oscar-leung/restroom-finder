@@ -428,6 +428,112 @@ export const STRINGS = {
   "common.save": { en: "Save", es: "Guardar", fr: "Enregistrer", de: "Speichern", ja: "保存" },
   "common.cancel": { en: "Cancel", es: "Cancelar", fr: "Annuler", de: "Abbrechen", ja: "キャンセル" },
 
+  // ---- Add-a-bathroom form ----
+  "add.usingLocation": {
+    en: "Using your current location", es: "Usando tu ubicación actual",
+    fr: "Position actuelle utilisée", de: "Aktueller Standort", ja: "現在地を使用中",
+  },
+  "add.nearestPlace": {
+    en: "Nearest place:", es: "Lugar más cercano:", fr: "Lieu le plus proche :",
+    de: "Nächster Ort:", ja: "最寄りの場所：",
+  },
+  "add.use": {
+    en: "use →", es: "usar →", fr: "utiliser →", de: "übernehmen →", ja: "使う →",
+  },
+  "add.nameLabel": {
+    en: "What's it called?", es: "¿Cómo se llama?", fr: "Comment ça s'appelle ?",
+    de: "Wie heißt es?", ja: "名前は？",
+  },
+  "add.namePlaceholder": {
+    en: "e.g. Starbucks on 5th, library 2nd floor",
+    es: "p. ej. Starbucks de la 5ª, biblioteca 2.º piso",
+    fr: "ex. Starbucks de la 5e, bibliothèque 2e étage",
+    de: "z. B. Starbucks 5th, Bibliothek 2. OG",
+    ja: "例：5番街のスタバ、図書館2階",
+  },
+  "add.tags": {
+    en: "Tags", es: "Etiquetas", fr: "Tags", de: "Merkmale", ja: "タグ",
+  },
+  "add.notesLabel": {
+    en: "Notes (optional)", es: "Notas (opcional)", fr: "Notes (facultatif)",
+    de: "Hinweise (optional)", ja: "メモ（任意）",
+  },
+  "add.notesPlaceholder": {
+    en: "Code on the door? Always clean? Anything useful for the next person.",
+    es: "¿Código en la puerta? ¿Siempre limpio? Lo que sea útil para la siguiente persona.",
+    fr: "Code sur la porte ? Toujours propre ? Tout ce qui est utile.",
+    de: "Türcode? Immer sauber? Alles Nützliche für die Nächsten.",
+    ja: "ドアの暗証番号は？いつも清潔？役立つ情報を。",
+  },
+  "add.shareTitle": {
+    en: "Share with everyone", es: "Compartir con todos", fr: "Partager avec tous",
+    de: "Mit allen teilen", ja: "みんなと共有",
+  },
+  "add.shareBody": {
+    en: "— also send this to Refuge Restrooms so the world's open data improves. Their moderators review before publishing.",
+    es: "— también se envía a Refuge Restrooms para mejorar los datos abiertos. Sus moderadores lo revisan antes de publicar.",
+    fr: "— envoyé aussi à Refuge Restrooms pour améliorer les données ouvertes. Leurs modérateurs valident avant publication.",
+    de: "— geht auch an Refuge Restrooms für bessere offene Daten. Deren Moderation prüft vor Veröffentlichung.",
+    ja: "— Refuge Restroomsにも送信され、オープンデータの改善に役立ちます。公開前にモデレーターが確認します。",
+  },
+  "add.saveShare": {
+    en: "Save + share", es: "Guardar y compartir", fr: "Enregistrer + partager",
+    de: "Speichern + teilen", ja: "保存して共有",
+  },
+  "add.saveLocal": {
+    en: "Save to my map", es: "Guardar en mi mapa", fr: "Enregistrer sur ma carte",
+    de: "Auf meiner Karte speichern", ja: "自分の地図に保存",
+  },
+  "add.savedTitle": {
+    en: "✓ Saved", es: "✓ Guardado", fr: "✓ Enregistré", de: "✓ Gespeichert", ja: "✓ 保存しました",
+  },
+  "add.savedBody": {
+    en: "“{name}” is now in your list, sorted by distance.",
+    es: "«{name}» ya está en tu lista, ordenada por distancia.",
+    fr: "« {name} » est dans votre liste, triée par distance.",
+    de: "„{name}“ ist jetzt in deiner Liste, nach Entfernung sortiert.",
+    ja: "「{name}」がリストに追加されました（距離順）。",
+  },
+  "add.upstreamPending": {
+    en: "Sharing with Refuge Restrooms…", es: "Compartiendo con Refuge Restrooms…",
+    fr: "Partage avec Refuge Restrooms…", de: "Teile mit Refuge Restrooms…",
+    ja: "Refuge Restroomsと共有中…",
+  },
+  "add.upstreamOk": {
+    en: "✓ Shared with Refuge Restrooms — pending their review. The world thanks you.",
+    es: "✓ Compartido con Refuge Restrooms — pendiente de revisión. El mundo te lo agradece.",
+    fr: "✓ Partagé avec Refuge Restrooms — en attente de validation. Le monde vous remercie.",
+    de: "✓ Mit Refuge Restrooms geteilt — Prüfung ausstehend. Die Welt dankt dir.",
+    ja: "✓ Refuge Restroomsと共有しました — 審査待ちです。",
+  },
+  "add.upstreamError": {
+    en: "Couldn't share upstream right now. Your local copy is fine.",
+    es: "No se pudo compartir ahora. Tu copia local está a salvo.",
+    fr: "Partage impossible pour l'instant. Votre copie locale est intacte.",
+    de: "Teilen gerade nicht möglich. Deine lokale Kopie bleibt.",
+    ja: "今は共有できませんでした。ローカル保存は完了しています。",
+  },
+  "add.submitManually": {
+    en: "Submit it manually here.", es: "Envíalo manualmente aquí.",
+    fr: "Soumettez-le manuellement ici.", de: "Hier manuell einreichen.",
+    ja: "こちらから手動で送信。",
+  },
+  "add.localOnly": {
+    en: "Saved on your device only. Want strangers to find it too?",
+    es: "Guardado solo en tu dispositivo. ¿Quieres que otros lo encuentren?",
+    fr: "Enregistré sur votre appareil seulement. Pour que d'autres le trouvent :",
+    de: "Nur auf deinem Gerät gespeichert. Sollen es andere finden?",
+    ja: "この端末のみに保存。他の人にも見つけてほしいなら：",
+  },
+  "add.shareLink": {
+    en: "Share with Refuge Restrooms →", es: "Compartir con Refuge Restrooms →",
+    fr: "Partager avec Refuge Restrooms →", de: "Mit Refuge Restrooms teilen →",
+    ja: "Refuge Restroomsと共有 →",
+  },
+  "common.done": {
+    en: "Done", es: "Listo", fr: "Terminé", de: "Fertig", ja: "完了",
+  },
+
   // ---- Photos + cleanliness ----
   "photos.empty": {
     en: "No photos yet — be the first.",
