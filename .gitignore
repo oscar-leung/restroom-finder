@@ -23,7 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 # ios/ is committed (Capacitor convention) — ios/.gitignore excludes build output
-android/
+# android/ is committed (Capacitor convention) — android/.gitignore excludes build output
 
 # Environment variables (keep secrets out of git)
 .env

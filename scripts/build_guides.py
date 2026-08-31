@@ -69,7 +69,56 @@ GUIDES = {
         "title": "Which Places Have the Cleanest Public Restrooms? A Field Ranking",
         "desc": "A tier ranking of hotel lobbies, Buc-ee's, libraries, groceries, fast food, and gas stations — and why staffing decides everything.",
     },
+    "public-restrooms-seattle": {
+        "title": "Where to Find Public Restrooms in Seattle",
+        "desc": "Pike Place, the Central Library, Seattle Center, beaches and parks — plus the rainy-day indoor strategy and light-rail reality.",
+    },
+    "public-restrooms-boston": {
+        "title": "Where to Find Public Restrooms in Boston",
+        "desc": "Surviving the Freedom Trail, the BPL, Quincy Market, food halls, and the winter shutdown of outdoor facilities.",
+    },
+    "public-restrooms-washington-dc": {
+        "title": "Where to Find Public Restrooms in Washington, DC",
+        "desc": "The Smithsonian trick that solves the National Mall, Union Station, Metro reality, and summer survival.",
+    },
+    "public-restrooms-san-diego": {
+        "title": "Where to Find Public Restrooms in San Diego",
+        "desc": "Beach facilities from Coronado to La Jolla, Balboa Park, the Gaslamp at night, and year-round outdoor options.",
+    },
+    "airport-bathroom-guide": {
+        "title": "The Airport Bathroom Guide: Layovers, Red-Eyes & Family Restrooms",
+        "desc": "Walk two gates further, find the family restrooms, freshen up on a layover, and win the pre-boarding bathroom math.",
+    },
+    "festival-event-bathroom-guide": {
+        "title": "Surviving Festival and Stadium Bathrooms",
+        "desc": "The porta-potty timing curve, where the empty banks are, mid-inning stadium strategy, and the essentials kit.",
+    },
+    "best-restroom-finder-apps": {
+        "title": "The Best Restroom Finder Apps and Maps, Compared",
+        "desc": "Flush, Refuge Restrooms, Google Maps, city programs, and Gotta Go — an honest comparison of what each does best (yes, we made one of them).",
+    },
 }
+
+# Related-guides links rendered on each article. Grouped by audience so the
+# links are genuinely relevant, not a random blogroll.
+CLUSTERS = [
+    ["public-restrooms-san-francisco", "public-restrooms-new-york", "public-restrooms-los-angeles",
+     "public-restrooms-chicago", "public-restrooms-las-vegas", "public-restrooms-seattle",
+     "public-restrooms-boston", "public-restrooms-washington-dc", "public-restrooms-san-diego"],
+    ["restroom-access-laws", "traveling-with-ibd", "cleanest-public-restrooms", "best-restroom-finder-apps"],
+    ["road-trip-bathroom-guide", "hiking-outdoors-bathroom-guide", "airport-bathroom-guide",
+     "festival-event-bathroom-guide", "bathrooms-with-kids", "theme-park-bathroom-guide"],
+]
+
+
+def related(slug):
+    """Up to 3 same-cluster slugs, wrapping around the cluster order."""
+    for cluster in CLUSTERS:
+        if slug in cluster:
+            i = cluster.index(slug)
+            rest = cluster[i + 1:] + cluster[:i]
+            return [r for r in rest if r in GUIDES][:3]
+    return []
 
 CHROME_CSS = """
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -114,6 +163,10 @@ CHROME_CSS = """
     article th, article td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
     article th { color: var(--text-muted); font-size: 13px; text-transform: uppercase; letter-spacing: .4px; }
     .crumbs { font-size: 13px; color: var(--text-muted); margin: 8px 0 0; }
+    .related { margin: 40px 0 0; padding-top: 8px; border-top: 1px solid var(--border); }
+    .related h2 { font-size: 16px !important; text-transform: uppercase; letter-spacing: .6px; color: var(--text-muted); margin: 16px 0 10px !important; }
+    .related ul { list-style: none; margin: 0 !important; }
+    .related li { margin-bottom: 8px; }
     .cta-box { margin: 36px 0 8px; padding: 22px; border-radius: 12px; text-align: center;
       background: linear-gradient(135deg, rgba(139,92,246,.08), rgba(236,72,153,.08));
       border: 1px solid var(--border); }
@@ -141,15 +194,57 @@ CTA = """<div class="cta-box">
 FOOTER = """<footer class="wrap">
   <a href="./index.html">All guides</a> &middot;
   <a href="../about.html">About Gotta Go</a> &middot;
-  <a href="../index.html">Open the app</a>
+  <a href="../index.html">Open the app</a> &middot;
+  <a href="https://buymeacoffee.com/holymushy" rel="noopener">Tip the dev</a>
   <div style="margin-top:8px">&copy; Gotta Go. Data from OpenStreetMap &amp; Refuge Restrooms.</div>
 </footer>"""
+
+
+def _strip_tags(x: str) -> str:
+    return re.sub(r"<[^>]+>", "", x).strip()
+
+
+def extract_faq(fragment: str):
+    """(question, answer-text) pairs from the trailing FAQ section, if any."""
+    m = re.search(r"<h2[^>]*>\s*FAQ[^<]*</h2>(.*)$", fragment, re.I | re.S)
+    if not m:
+        return []
+    return [(_strip_tags(q), _strip_tags(a))
+            for q, a in re.findall(r"<h3[^>]*>(.*?)</h3>\s*<p[^>]*>(.*?)</p>",
+                                   m.group(1), re.S)]
+
+
+def related_block(slug: str) -> str:
+    links = related(slug)
+    if not links:
+        return ""
+    items = "\n".join(
+        f'    <li><a href="./{r}.html">{html.escape(GUIDES[r]["title"])}</a></li>'
+        for r in links)
+    return f"""<div class="related">
+  <h2>Keep reading</h2>
+  <ul>
+{items}
+  </ul>
+</div>"""
 
 
 def page(slug: str, meta: dict, fragment: str, today: str) -> str:
     title = html.escape(meta["title"])
     desc = html.escape(meta["desc"])
     url = f"{BASE}/guides/{slug}.html"
+    faq = extract_faq(fragment)
+    faq_ld = ""
+    if faq:
+        faq_ld = "\n  <script type=\"application/ld+json\">" + json.dumps({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+                {"@type": "Question", "name": q,
+                 "acceptedAnswer": {"@type": "Answer", "text": a}}
+                for q, a in faq],
+        }) + "</script>"
+    related_html = related_block(slug)
     ld = json.dumps({
         "@context": "https://schema.org",
         "@type": "Article",
@@ -178,7 +273,7 @@ def page(slug: str, meta: dict, fragment: str, today: str) -> str:
   <meta property="og:url" content="{url}" />
   <meta name="twitter:card" content="summary" />
   <link rel="icon" href="../icon-192.svg" type="image/svg+xml" />
-  <script type="application/ld+json">{ld}</script>
+  <script type="application/ld+json">{ld}</script>{faq_ld}
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2007583955528498" crossorigin="anonymous"></script>
   <style>{CHROME_CSS}</style>
 </head>
@@ -188,6 +283,7 @@ def page(slug: str, meta: dict, fragment: str, today: str) -> str:
   <p class="crumbs"><a href="./index.html">Guides</a> / {title}</p>
   <article>
 {fragment}
+{related_html}
 {CTA}
   </article>
 </main>
