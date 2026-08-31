@@ -93,6 +93,10 @@ GUIDES = {
         "title": "Surviving Festival and Stadium Bathrooms",
         "desc": "The porta-potty timing curve, where the empty banks are, mid-inning stadium strategy, and the essentials kit.",
     },
+    "best-restroom-finder-apps": {
+        "title": "The Best Restroom Finder Apps and Maps, Compared",
+        "desc": "Flush, Refuge Restrooms, Google Maps, city programs, and Gotta Go — an honest comparison of what each does best (yes, we made one of them).",
+    },
 }
 
 # Related-guides links rendered on each article. Grouped by audience so the
@@ -101,7 +105,7 @@ CLUSTERS = [
     ["public-restrooms-san-francisco", "public-restrooms-new-york", "public-restrooms-los-angeles",
      "public-restrooms-chicago", "public-restrooms-las-vegas", "public-restrooms-seattle",
      "public-restrooms-boston", "public-restrooms-washington-dc", "public-restrooms-san-diego"],
-    ["restroom-access-laws", "traveling-with-ibd", "cleanest-public-restrooms"],
+    ["restroom-access-laws", "traveling-with-ibd", "cleanest-public-restrooms", "best-restroom-finder-apps"],
     ["road-trip-bathroom-guide", "hiking-outdoors-bathroom-guide", "airport-bathroom-guide",
      "festival-event-bathroom-guide", "bathrooms-with-kids", "theme-park-bathroom-guide"],
 ]
@@ -190,7 +194,8 @@ CTA = """<div class="cta-box">
 FOOTER = """<footer class="wrap">
   <a href="./index.html">All guides</a> &middot;
   <a href="../about.html">About Gotta Go</a> &middot;
-  <a href="../index.html">Open the app</a>
+  <a href="../index.html">Open the app</a> &middot;
+  <a href="https://buymeacoffee.com/holymushy" rel="noopener">Tip the dev</a>
   <div style="margin-top:8px">&copy; Gotta Go. Data from OpenStreetMap &amp; Refuge Restrooms.</div>
 </footer>"""
 
