@@ -65,7 +65,12 @@ a { color: inherit; }
   flex-direction: column;
   min-height: 100vh;
   padding-top: var(--safe-top);
-  padding-bottom: var(--safe-bottom);
+  /* Clear the fixed .map-pill (position:fixed, bottom 20px + safe area).
+     Without this the pill sits on top of the last element on the page —
+     it was covering the right half of the roulette button and clipping
+     its label. Reserve the pill's height plus breathing room so content
+     can always scroll clear of it. */
+  padding-bottom: calc(var(--safe-bottom) + 84px);
 }
 
 .app-header {

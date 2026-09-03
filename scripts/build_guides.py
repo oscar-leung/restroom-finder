@@ -195,7 +195,8 @@ FOOTER = """<footer class="wrap">
   <a href="./index.html">All guides</a> &middot;
   <a href="../about.html">About Gotta Go</a> &middot;
   <a href="../index.html">Open the app</a> &middot;
-  <a href="https://buymeacoffee.com/holymushy" rel="noopener">Tip the dev</a>
+  <a href="https://buymeacoffee.com/holymushy" rel="noopener">Tip the dev</a> &middot;
+  <a href="../privacy.html">Privacy</a>
   <div style="margin-top:8px">&copy; Gotta Go. Data from OpenStreetMap &amp; Refuge Restrooms.</div>
 </footer>"""
 
