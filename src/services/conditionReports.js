@@ -17,14 +17,21 @@
  *   gg_points_v1:     { total: number, lifetime: number, byType: {...} }
  */
 
+import { postReport } from "./backend";
+
 const COND_KEY = "gg_conditions_v1";
 const POINTS_KEY = "gg_points_v1";
+const SUPPRESS_KEY = "gg_suppressed_v1";
 
 export const REPORT_TYPES = {
   clean:           { label: "Clean",          icon: "✨", points: 5,  weight: +1 },
   dirty:           { label: "Dirty",          icon: "🤢", points: 5,  weight: -1 },
   needs_supplies:  { label: "Needs supplies", icon: "🧻", points: 10, weight: -0.5 },
   out_of_order:    { label: "Out of order",   icon: "🚫", points: 15, weight: -2 },
+  // "I walked here and there's no bathroom" — the most expensive data
+  // error an app like this can have. Suppresses the entry on this
+  // device (see isSuppressed) until the backend can aggregate votes.
+  not_here:        { label: "Doesn't exist",  icon: "👻", points: 15, weight: -3 },
 };
 
 function readConditions() {
@@ -73,6 +80,12 @@ export function reportCondition(bathroomId, type) {
   all[bathroomId] = [report, ...list].slice(0, 50); // cap history
   writeConditions(all);
 
+  // "Doesn't exist" also hides the entry from this device's results
+  if (type === "not_here") suppress(bathroomId);
+
+  // Mirror to the shared backend when configured (no-op otherwise)
+  postReport(bathroomId, type);
+
   // Award points
   const pts = readPoints();
   const award = REPORT_TYPES[type].points;
@@ -107,6 +120,67 @@ export function getBathroomState(bathroomId) {
     }
   }
   return condensed;
+}
+
+/**
+ * Worst negative report in the last 24h — powers the ROADMAP P2 #20
+ * "warning badge outside the details modal". A "clean" report newer
+ * than every negative one clears the warning (the state improved).
+ * Reports are device-local until the backend ships, so this reflects
+ * what THIS user reported.
+ */
+export function getConditionWarning(bathroomId) {
+  const recent = getRecentReports(bathroomId, 24);
+  if (!recent.length) return null;
+  const negatives = recent.filter((r) => (REPORT_TYPES[r.type]?.weight ?? 0) < 0);
+  if (!negatives.length) return null;
+  const newestNegativeTs = Math.max(...negatives.map((r) => +new Date(r.ts)));
+  // >= not >: reports filed in the same millisecond (burst-tapping the
+  // buttons) still count the clean as the later signal — the reports
+  // list is newest-first, so a same-ts clean was filed after.
+  const clearedBy = recent.some(
+    (r) => r.type === "clean" && +new Date(r.ts) >= newestNegativeTs
+  );
+  if (clearedBy) return null;
+  negatives.sort(
+    (a, b) => REPORT_TYPES[a.type].weight - REPORT_TYPES[b.type].weight
+  );
+  const worst = negatives[0];
+  return { type: worst.type, ts: worst.ts, ...REPORT_TYPES[worst.type] };
+}
+
+/* ------------------- "Doesn't exist" suppression ------------------- */
+/*
+ * A not_here report hides the entry from results on this device —
+ * persistent, unlike the 24h warning window, because a phantom
+ * bathroom doesn't come back. Bulk-restorable from the main screen
+ * (single-entry undo is impossible once the entry is hidden).
+ * Device-local until the backend can aggregate votes across users.
+ */
+
+function readSuppressed() {
+  try { return JSON.parse(localStorage.getItem(SUPPRESS_KEY)) || {}; } catch { return {}; }
+}
+function writeSuppressed(o) {
+  try { localStorage.setItem(SUPPRESS_KEY, JSON.stringify(o)); } catch { /* non-fatal */ }
+}
+
+export function suppress(bathroomId) {
+  const all = readSuppressed();
+  all[bathroomId] = new Date().toISOString();
+  writeSuppressed(all);
+}
+
+export function isSuppressed(bathroomId) {
+  return bathroomId in readSuppressed();
+}
+
+export function getSuppressedCount() {
+  return Object.keys(readSuppressed()).length;
+}
+
+export function clearSuppressed() {
+  try { localStorage.removeItem(SUPPRESS_KEY); } catch { /* non-fatal */ }
 }
 
 export function getPoints() { return readPoints(); }

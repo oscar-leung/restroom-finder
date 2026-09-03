@@ -26,9 +26,10 @@ export default function CelebrationOverlay({
 }) {
   const [exiting, setExiting] = useState(false);
 
+  // No sync state reset needed: App mounts this fresh per celebration
+  // (conditional render), so `exiting` always starts false.
   useEffect(() => {
     if (!isOpen) return;
-    setExiting(false);
     const t1 = setTimeout(() => setExiting(true), 1700);
     const t2 = setTimeout(() => onDone?.(), 2100);
     return () => { clearTimeout(t1); clearTimeout(t2); };

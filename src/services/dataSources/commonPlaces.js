@@ -198,8 +198,8 @@ const QUERY_TIERS = [
   { tagKey: "shop",    tagValues: ["mall", "department_store", "supermarket"], requireBrand: false,
     comment: "Public restroom corridor", note: "Mall" },
 
-  // Civic / public services
-  { tagKey: "amenity", tagValues: ["library", "community_centre", "townhall", "courthouse", "post_office"], requireBrand: false,
+  // Civic / public services (social_facility covers senior centers)
+  { tagKey: "amenity", tagValues: ["library", "community_centre", "social_facility", "townhall", "courthouse", "post_office"], requireBrand: false,
     comment: "Public building — restrooms during open hours", note: "Public building" },
 
   // Education (universities + colleges only — K-12 schools are not
@@ -278,12 +278,16 @@ function buildQuery(lat, lng) {
       (v) => `node["${tier.tagKey}"="${v}"](around:${RADIUS_M},${lat},${lng});`
     )
   ).join("\n");
+  // NOTE: default (body) verbosity, NOT `out tags` — the tags
+  // verbosity strips node coordinates, which made every element fail
+  // the coords check below. The whole inferred-places feature returned
+  // an empty list until this was fixed.
   return `
     [out:json][timeout:12];
     (
       ${filters}
     );
-    out tags 200;
+    out 200;
   `.trim();
 }
 
@@ -341,6 +345,9 @@ export async function fetchCommonPlaces(lat, lng) {
           comment: tier.comment,
           inferred: true,
           inferred_kind: tier.note, // "Hotel" / "Mall" / "Customer bathroom" / etc.
+          // ROADMAP elder additions: always-staffed, always-clean venues
+          senior_friendly: ["library", "community_centre", "social_facility", "hospital"]
+            .includes(t[tier.tagKey]),
           amenity_type: t[tier.tagKey],
           upvote: 0,
           downvote: 0,

@@ -26,22 +26,27 @@ export default function SearchBar({ onPick, onClear }) {
   const containerRef = useRef(null);
 
   // Debounce search → 1 request per second feels live but respects
-  // Nominatim's fair-use rate limit
-  useEffect(() => {
+  // Nominatim's fair-use rate limit. All synchronous state flips live
+  // in the change handler; the debounced fetch sets state async only.
+  const onQueryChange = (value) => {
+    setQuery(value);
     clearTimeout(debounceRef.current);
-    if (query.trim().length < 3) {
+    if (value.trim().length < 3) {
       setResults([]);
+      setLoading(false);
       return;
     }
     setLoading(true);
     debounceRef.current = setTimeout(async () => {
-      const found = await geocodeSearch(query);
+      const found = await geocodeSearch(value);
       setResults(found);
       setLoading(false);
       setOpen(found.length > 0);
     }, 350);
-    return () => clearTimeout(debounceRef.current);
-  }, [query]);
+  };
+
+  // Clear any pending debounce on unmount
+  useEffect(() => () => clearTimeout(debounceRef.current), []);
 
   // Click outside → close
   useEffect(() => {
@@ -76,7 +81,7 @@ export default function SearchBar({ onPick, onClear }) {
           className="searchbar-input"
           placeholder="Search anywhere — address, landmark, city…"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => onQueryChange(e.target.value)}
           onFocus={() => results.length > 0 && setOpen(true)}
           autoComplete="off"
           aria-label="Search any place"

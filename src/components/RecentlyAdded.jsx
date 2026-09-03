@@ -1,4 +1,5 @@
 import { formatDistance } from "../utils/distance";
+import { useI18n } from "../i18n";
 
 /**
  * RecentlyAdded — surfaces user-contributed bathrooms (newest first).
@@ -10,6 +11,7 @@ import { formatDistance } from "../utils/distance";
  * Hidden if there are no user-added bathrooms yet.
  */
 export default function RecentlyAdded({ userBathrooms, onSelect }) {
+  const { t } = useI18n();
   if (!userBathrooms || userBathrooms.length === 0) return null;
 
   // Newest first, top 5
@@ -20,9 +22,9 @@ export default function RecentlyAdded({ userBathrooms, onSelect }) {
   return (
     <section className="recent-added">
       <div className="recent-added-head">
-        <h3 className="alts-title">Recently added by you</h3>
+        <h3 className="alts-title">{t("recent.title")}</h3>
         <span className="recent-added-count">
-          {userBathrooms.length} contributed
+          {t("recent.contributed", { n: userBathrooms.length })}
         </span>
       </div>
       <div className="recent-added-list">
@@ -41,7 +43,7 @@ export default function RecentlyAdded({ userBathrooms, onSelect }) {
               {r.distance != null && (
                 <span className="recent-row-dist">{formatDistance(r.distance)}</span>
               )}
-              <span className="recent-row-badge">added by you</span>
+              <span className="recent-row-badge">{t("recent.badge")}</span>
             </div>
           </button>
         ))}

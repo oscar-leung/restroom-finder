@@ -1,3 +1,4 @@
+import { distanceMeters } from "../utils/distance";
 import { fetchNYC } from "./dataSources/nyc";
 import { fetchSF } from "./dataSources/sf";
 import { fetchGooglePlaces } from "./dataSources/googlePlaces";
@@ -58,6 +59,14 @@ async function fetchFromRefuge(lat, lng) {
 /**
  * Overpass QL: find every amenity=toilets within a radius of the user,
  * as node/way/relation, and return each with its center coordinates.
+ *
+ * Also grabs nearby benches in the same request (zero extra round
+ * trips) — the elder-focused "Bench nearby" filter marks bathrooms
+ * with somewhere to rest on the way.
+ *
+ * NOTE: the toilets `out` uses default (body) verbosity, NOT `tags` —
+ * `out tags` strips node coordinates, which silently dropped every
+ * node-type toilet from the results.
  */
 function overpassQuery(lat, lng, radius) {
   return `
@@ -67,8 +76,37 @@ function overpassQuery(lat, lng, radius) {
       way["amenity"="toilets"](around:${radius},${lat},${lng});
       relation["amenity"="toilets"](around:${radius},${lat},${lng});
     );
-    out center tags 40;
+    out center 40;
+    node["amenity"="bench"](around:${radius},${lat},${lng});
+    out 80;
   `.trim();
+}
+
+// A bench within this range of a bathroom counts as "somewhere to rest
+// on the way" for the elder-focused filter.
+const BENCH_RADIUS_M = 60;
+
+// Benches from the most recent OSM fetch — consumed by
+// fetchNearbyRestrooms to annotate the merged list. Reset per fetch.
+let lastBenches = [];
+
+/**
+ * Ground-floor signal from OSM tags (ROADMAP "No stairs" filter):
+ *   true  – tagged level includes 0 (street level)
+ *   false – tagged on another floor only, or underground
+ *   null  – unknown (most entries)
+ */
+function groundFloor(t) {
+  if (t.level != null) {
+    const levels = String(t.level)
+      .split(/[;,]/)
+      .map((s) => parseFloat(s.trim()));
+    if (levels.some((n) => n === 0)) return true;
+    if (levels.length && levels.every((n) => !Number.isNaN(n))) return false;
+    return null;
+  }
+  if (t.location === "underground") return false;
+  return null;
 }
 
 async function fetchFromOSM(lat, lng) {
@@ -81,7 +119,13 @@ async function fetchFromOSM(lat, lng) {
   if (!res.ok) throw new Error(`OSM: ${res.status}`);
   const { elements = [] } = await res.json();
 
+  // Split the combined response: bench nodes vs toilet features
+  lastBenches = elements
+    .filter((el) => el.type === "node" && el.tags?.amenity === "bench")
+    .map((el) => ({ lat: el.lat, lng: el.lon }));
+
   return elements
+    .filter((el) => el.tags?.amenity !== "bench")
     .map((el) => {
       const coords =
         el.type === "node"
@@ -143,6 +187,7 @@ async function fetchFromOSM(lat, lng) {
           paper_towels: hasPaperTowels,
         },
         fee: t.fee === "yes" ? true : t.fee === "no" ? false : null,
+        ground_floor: groundFloor(t),
         opening_hours: t.opening_hours || null,
         directions: t.description || null,
         comment: t.access && t.access !== "yes" ? `Access: ${t.access}` : null,
@@ -253,7 +298,19 @@ function cacheSet(lat, lng, data) {
  *
  * Returns: { results, fromCache: boolean, cachedAt: ISO | null }
  */
+/** Mark entries (from ANY source) that have a bench within resting range. */
+function annotateBenches(list, benches) {
+  if (!benches.length) return list;
+  return list.map((r) => ({
+    ...r,
+    near_bench: benches.some(
+      (b) => distanceMeters(r.latitude, r.longitude, b.lat, b.lng) <= BENCH_RADIUS_M
+    ),
+  }));
+}
+
 export async function fetchNearbyRestrooms(lat, lng) {
+  lastBenches = []; // don't carry benches over from a previous location
   const results = await Promise.allSettled([
     fetchFromRefuge(lat, lng),
     fetchFromOSM(lat, lng),
@@ -283,7 +340,7 @@ export async function fetchNearbyRestrooms(lat, lng) {
   }
 
   if (combined.length > 0) {
-    const merged = dedupe(combined);
+    const merged = annotateBenches(dedupe(combined), lastBenches);
     cacheSet(lat, lng, merged);
     return merged;
   }

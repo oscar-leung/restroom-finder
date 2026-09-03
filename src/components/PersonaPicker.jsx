@@ -1,4 +1,5 @@
 import { trackEvent } from "../utils/analytics";
+import { useI18n } from "../i18n";
 
 /**
  * PersonaPicker — single-question first-visit modal that personalizes
@@ -14,6 +15,7 @@ import { trackEvent } from "../utils/analytics";
  * configuration cost.
  */
 export default function PersonaPicker({ onPick }) {
+  const { t } = useI18n();
   const choose = (persona) => {
     trackEvent("persona_picked", { persona });
     onPick(persona);
@@ -23,9 +25,9 @@ export default function PersonaPicker({ onPick }) {
     <div className="persona-backdrop" role="dialog" aria-modal="true" aria-labelledby="persona-title">
       <div className="persona-modal">
         <h2 id="persona-title" className="persona-title">
-          Welcome to <span className="persona-brand">Gotta Go</span>
+          {t("persona.welcome", { brand: "Gotta Go" })}
         </h2>
-        <p className="persona-sub">Help us tailor it. Pick one — you can change later.</p>
+        <p className="persona-sub">{t("persona.sub")}</p>
 
         <div className="persona-options">
           <button
@@ -33,11 +35,8 @@ export default function PersonaPicker({ onPick }) {
             onClick={() => choose("student")}
           >
             <span className="persona-icon" aria-hidden="true">🎓</span>
-            <span className="persona-name">I'm a student</span>
-            <span className="persona-desc">
-              Show free options first. Quick share with friends. No purchase
-              required filter on by default.
-            </span>
+            <span className="persona-name">{t("persona.student.name")}</span>
+            <span className="persona-desc">{t("persona.student.desc")}</span>
           </button>
 
           <button
@@ -45,11 +44,8 @@ export default function PersonaPicker({ onPick }) {
             onClick={() => choose("senior")}
           >
             <span className="persona-icon" aria-hidden="true">🪻</span>
-            <span className="persona-name">Larger text + accessibility</span>
-            <span className="persona-desc">
-              Bigger buttons, calmer screen, accessibility filter on, walking
-              time at a relaxed pace. Less visual noise.
-            </span>
+            <span className="persona-name">{t("persona.senior.name")}</span>
+            <span className="persona-desc">{t("persona.senior.desc")}</span>
           </button>
 
           <button
@@ -57,15 +53,13 @@ export default function PersonaPicker({ onPick }) {
             onClick={() => choose("default")}
           >
             <span className="persona-icon" aria-hidden="true">🚀</span>
-            <span className="persona-name">Just give me the app</span>
-            <span className="persona-desc">
-              Default experience. All features on.
-            </span>
+            <span className="persona-name">{t("persona.default.name")}</span>
+            <span className="persona-desc">{t("persona.default.desc")}</span>
           </button>
         </div>
 
         <button className="persona-skip" onClick={() => choose("default")}>
-          skip
+          {t("persona.skip")}
         </button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getReviews, addReview, getStats } from "../services/reviews";
 import { trackEvent } from "../utils/analytics";
+import { useI18n } from "../i18n";
 
 /**
  * Reviews — shown inside the details modal.
@@ -9,6 +10,7 @@ import { trackEvent } from "../utils/analytics";
  * No auth required. Stored locally (see services/reviews.js).
  */
 export default function Reviews({ restroomId }) {
+  const { t } = useI18n();
   const [reviews, setReviews] = useState([]);
   const [stats, setStats] = useState({ count: 0, avgRating: null, avgCleanliness: null });
   const [adding, setAdding] = useState(false);
@@ -35,34 +37,33 @@ export default function Reviews({ restroomId }) {
   return (
     <section className="reviews">
       <div className="reviews-header">
-        <h3>Reviews</h3>
+        <h3>{t("reviews.title")}</h3>
         {stats.count > 0 && (
           <div className="reviews-summary">
-            ⭐ {stats.avgRating} · 🧼 {stats.avgCleanliness} · {stats.count}{" "}
-            review{stats.count !== 1 ? "s" : ""}
+            ⭐ {stats.avgRating} · 🧼 {stats.avgCleanliness} · {t(stats.count === 1 ? "reviews.one" : "reviews.many", { n: stats.count })}
           </div>
         )}
       </div>
 
       {!adding && (
         <button className="review-add-btn" onClick={() => setAdding(true)}>
-          + Write a review
+          {t("reviews.write")}
         </button>
       )}
 
       {adding && (
         <form className="review-form" onSubmit={submit}>
           <label>
-            Overall
+            {t("reviews.overall")}
             <StarInput value={rating} onChange={setRating} />
           </label>
           <label>
-            Cleanliness
+            {t("panel.cleanliness")}
             <StarInput value={cleanliness} onChange={setCleanliness} />
           </label>
           <textarea
             className="review-comment"
-            placeholder="Anything useful for the next person? (optional)"
+            placeholder={t("reviews.placeholder")}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             maxLength={500}
@@ -70,10 +71,10 @@ export default function Reviews({ restroomId }) {
           />
           <div className="review-actions">
             <button type="button" onClick={() => setAdding(false)} className="btn-ghost">
-              Cancel
+              {t("common.cancel")}
             </button>
             <button type="submit" className="btn-primary">
-              Post
+              {t("reviews.post")}
             </button>
           </div>
         </form>
@@ -81,7 +82,7 @@ export default function Reviews({ restroomId }) {
 
       <ul className="review-list">
         {reviews.length === 0 && !adding && (
-          <li className="review-empty">No reviews yet — be the first.</li>
+          <li className="review-empty">{t("reviews.empty")}</li>
         )}
         {reviews.map((r) => (
           <li key={r.id} className="review-item">

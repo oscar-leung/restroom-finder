@@ -58,6 +58,45 @@ scaffolded for native apps when you're ready.
 - [x] Map legend (public / added by you / your usuals)
 - [x] User-added bathrooms colored amber with left border accent
 - [x] A/B testing framework (`go_button_label` GO vs GO NOW running now)
+- [x] **PWA install nudge** (from 2nd distinct-day visit; real prompt on
+      Chromium, Share-sheet instructions on iOS, one dismiss = silenced)
+- [x] **🪑 Bench-nearby filter** (bench within 60m, same Overpass request)
+- [x] **🚷 No-stairs filter** (hides known other-floor/underground; on by
+      default for the senior persona)
+- [x] **🌍 Country filter** (behind `country_filter` flag @ 50%; renders
+      only when results span 2+ countries)
+- [x] **Screen-reader pass** (aria-live hero announcements, labeled GO links)
+- [x] **Lint gate green** (`eslint .` passes again — PR previews were red)
+- [x] **👻 "Doesn't exist" reports** (+15 pts, hides phantom entries on
+      this device, bulk Restore on the main screen)
+- [x] **⚠️ Condition warning badge** on hero + alt cards (worst negative
+      report in 24h; a newer clean report clears it)
+- [x] **🚻 Facilities section** (displays OSM fixture data + quick-edit
+      form; user edits merge over source tags)
+- [x] **🧭 Turn-by-turn strip** on the map route (OSRM steps, was
+      fetched-but-never-shown)
+- [x] **🌍 Multilingual: en/es/fr/de/ja** (~2KB dependency-free i18n,
+      header switcher, auto-detect, English fallback)
+- [x] **🧪 44 unit tests (vitest)** for the pure service layer, running
+      in the PR gate between lint and build
+- [x] **Fixed: `out tags` Overpass bug** — node toilets AND the entire
+      common-places tier (76, Starbucks, malls…) returned zero results
+      in production
+- [x] **🗺️ Marker clustering** (native leaflet.markercluster — dense
+      downtowns collapse into numbered bubbles; selected pin stays
+      unclustered so the route line ends at a visible marker)
+- [x] **4 more city guides** (Seattle, Boston, Washington DC, Houston —
+      17 guide pages total, sitemap updated)
+- [x] **☁️ Backend scaffold** (`workers/` — Cloudflare Worker + KV:
+      cross-user reports, GO popularity; ships dark until you deploy it
+      per `workers/RUNBOOK.md` and set the `VITE_API_BASE` secret)
+- [x] **Zero lint debt** — react-hooks v7 rules at full error strength,
+      all 14 warnings refactored away properly
+
+### ⚠️ New "needs YOU" item (10 min): deploy the backend
+`workers/RUNBOOK.md` has the copy-paste steps (Cloudflare login →
+`wrangler deploy` → set the `VITE_API_BASE` repo secret). Until then the
+app runs exactly as before — the backend client no-ops.
 
 ### Deploy + infra
 - [x] GitHub Pages CI/CD (`.github/workflows/deploy.yml`)
@@ -143,11 +182,9 @@ once you have the accounts.
 ## What could be done autonomously next (your call)
 
 ### Quick wins (under an hour each, fully automatable)
-- **Country/region filter** — Legal Walls has this; would help global users
 - **TikTok scripts + Twitter thread** — `marketing-agent` can write these
 - **Programmatic city landing pages** — `seo-agent` can draft `/sf`, `/berkeley`,
   `/nyc` pages with local restroom counts (good for SEO + sharing)
-- **PWA install prompt** — nudge users to "Add to Home Screen" after their 2nd visit
 
 ### Medium (a few hours)
 - **Backend for cross-user concentration heatmap** — currently the

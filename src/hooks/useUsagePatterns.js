@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 
 /**
  * useUsagePatterns — privacy-first usage tracking, localStorage only.
@@ -74,12 +74,9 @@ function formatHour(h) {
 }
 
 export default function useUsagePatterns() {
-  const [log, setLog] = useState([]);
-
-  // Hydrate from localStorage on mount
-  useEffect(() => {
-    setLog(readLog());
-  }, []);
+  // Hydrated synchronously — localStorage is fast and this avoids a
+  // hydrate-effect render flash
+  const [log, setLog] = useState(() => readLog());
 
   const record = useCallback(() => {
     const updated = [...readLog(), new Date().toISOString()];

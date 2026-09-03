@@ -1,7 +1,9 @@
 import { formatDistance } from "../utils/distance";
 import { getStats } from "../services/reviews";
+import { getConditionWarning } from "../services/conditionReports";
 import { isOpenNow } from "../utils/hours";
 import MiniMap from "./MiniMap";
+import { useI18n } from "../i18n";
 
 /**
  * AlternativesRow — horizontal scroll of other nearby restrooms.
@@ -13,15 +15,18 @@ import MiniMap from "./MiniMap";
  *   onPromote    – callback when user taps a card → make this one primary
  */
 export default function AlternativesRow({ restrooms, onPromote }) {
+  // Hook must run unconditionally — keep it above the early return
+  const { t } = useI18n();
   const alternatives = restrooms.slice(1, 7);
   if (alternatives.length === 0) return null;
 
   return (
     <section className="alts">
-      <h3 className="alts-title">Or pick another nearby</h3>
+      <h3 className="alts-title">{t("alts.title")}</h3>
       <div className="alts-scroll">
         {alternatives.map((r) => {
           const stats = getStats(r.id);
+          const warn = getConditionWarning(r.id);
           const { isOpen, knownStatus } = isOpenNow(r.opening_hours);
           const address = [r.street, r.city].filter(Boolean).join(", ");
           return (
@@ -38,10 +43,16 @@ export default function AlternativesRow({ restrooms, onPromote }) {
               <div className="alt-name">{r.name || "Unnamed"}</div>
               <div className="alt-street">{address || ""}</div>
               {r.inferred && (
-                <div className="alt-inferred-note">Customer bathroom</div>
+                <div className="alt-inferred-note">{r.inferred_kind || "Customer bathroom"}</div>
               )}
               <div className="alt-icons">
                 {r.accessible && <span title="Accessible">♿</span>}
+                {r.senior_friendly && <span title="Senior-friendly">🧓</span>}
+                {warn && (
+                  <span title={`You reported this ${warn.label.toLowerCase()} in the last 24h`}>
+                    {warn.icon}
+                  </span>
+                )}
                 {r.unisex && <span title="Gender neutral">⚧</span>}
                 {r.fee === false && <span className="alt-free" title="Free">free</span>}
                 {knownStatus && (

@@ -70,7 +70,9 @@ export function setPersona(persona) {
 export function getPersonaFilterDefaults(persona) {
   switch (persona) {
     case "senior":
-      return { accessible: true, singleOccupant: true };
+      // noStairs is lenient (hides only known-other-floor entries), so
+      // defaulting it on costs seniors nothing when data is missing.
+      return { accessible: true, singleOccupant: true, noStairs: true };
     case "student":
       return { free: true };
     default:

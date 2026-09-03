@@ -96,3 +96,41 @@ const CARDINALS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
 export function bearingToCardinal(deg) {
   return CARDINALS[Math.round(deg / 45) % 8];
 }
+
+/* ------- Turn-by-turn helpers (P0 #6) ------- */
+
+// Arrow glyph for a maneuver modifier — quick visual scan of the strip.
+const MODIFIER_ARROWS = {
+  "left": "←", "right": "→",
+  "slight left": "↖", "slight right": "↗",
+  "sharp left": "↰", "sharp right": "↱",
+  "straight": "↑", "uturn": "↩",
+};
+
+export function stepArrow(step) {
+  if (step.type === "arrive") return "🏁";
+  if (step.type === "depart") return "🚶";
+  return MODIFIER_ARROWS[step.modifier] || "↑";
+}
+
+/**
+ * Humanize one OSRM step ({type, modifier, distance}) into short text.
+ * OSRM's demo profile gives no street names, so keep it directional.
+ */
+export function describeStep(step) {
+  const dir = step.modifier || "";
+  switch (step.type) {
+    case "depart": return "Head out";
+    case "arrive": return "Arrive";
+    case "turn": return `Turn ${dir}`;
+    case "end of road": return `End of road, go ${dir}`;
+    case "fork": return `At the fork, keep ${dir}`;
+    case "merge": return `Merge ${dir}`;
+    case "roundabout":
+    case "rotary": return "Take the roundabout";
+    case "new name":
+    case "continue":
+    default:
+      return dir && dir !== "straight" ? `Continue ${dir}` : "Continue straight";
+  }
+}

@@ -3,10 +3,12 @@ import { formatDistance } from "../utils/distance";
 import { trackEvent } from "../utils/analytics";
 import { getFlag } from "../utils/featureFlags";
 import { getStats } from "../services/reviews";
+import { getConditionWarning } from "../services/conditionReports";
 import { walkingMinutes } from "../services/comfort";
 import { bearing, bearingToCardinal } from "../services/routing";
 import { isOpenNow } from "../utils/hours";
 import useSwipe from "../hooks/useSwipe";
+import { useI18n } from "../i18n";
 
 /**
  * HeroCard — the big "here's the closest restroom" card shown front-and-center.
@@ -39,6 +41,7 @@ export default function HeroCard({
   onPrev,
   onShowRoute,
 }) {
+  const { t } = useI18n();
   // Swipe hook — bind attaches pointer handlers + a live transform
   const { bind, offsetX, isDragging } = useSwipe({
     onSwipeLeft: () => {
@@ -99,7 +102,7 @@ export default function HeroCard({
   // Label changes when you've swiped off the closest:
   //   "CLOSEST RESTROOM" (at index 0)
   //   "#2 NEAREST" etc.
-  const label = index === 0 ? "CLOSEST RESTROOM" : `#${index + 1} NEAREST`;
+  const label = index === 0 ? t("hero.closest") : t("hero.nth", { n: index + 1 });
 
   // Dot indicator: show up to 6 dots (enough for the next-5 range)
   const dotCount = Math.min(total, 6);
@@ -124,12 +127,12 @@ export default function HeroCard({
       <div className="hero-stats">
         <div className="hero-stat">
           <div className="hero-stat-num">{formatDistance(restroom.distance)}</div>
-          <div className="hero-stat-label">away</div>
+          <div className="hero-stat-label">{t("hero.away")}</div>
         </div>
         <div className="hero-stat-divider" />
         <div className="hero-stat">
           <div className="hero-stat-num">{walkMins}</div>
-          <div className="hero-stat-label">min walk</div>
+          <div className="hero-stat-label">{t("hero.minWalk")}</div>
         </div>
         {cardinal != null && (
           <>
@@ -142,7 +145,7 @@ export default function HeroCard({
               >
                 ↑
               </div>
-              <div className="hero-stat-label">go {cardinal}</div>
+              <div className="hero-stat-label">{t("simple.goDirection", { dir: cardinal })}</div>
             </div>
           </>
         )}
@@ -150,30 +153,35 @@ export default function HeroCard({
 
       <div className="hero-badges">
         {restroom.accessible && (
-          <span className="badge badge-accessible">♿ Accessible</span>
+          <span className="badge badge-accessible">♿ {t("filter.accessible")}</span>
         )}
         {restroom.unisex && (
-          <span className="badge badge-unisex">⚧ Gender Neutral</span>
+          <span className="badge badge-unisex">⚧ {t("filter.unisex")}</span>
         )}
         {restroom.fee === false && (
-          <span className="badge badge-free">Free</span>
+          <span className="badge badge-free">{t("filter.free")}</span>
         )}
         {restroom.single_occupant === true && (
           <span className="badge badge-private" title="Single-occupant locked room">
-            🔒 Private
+            🔒 {t("filter.private")}
           </span>
         )}
         {restroom.family === true && (
           <span className="badge badge-family" title="Family-friendly">
-            👨‍👩‍👧 Family
+            👨‍👩‍👧 {t("badge.family")}
+          </span>
+        )}
+        {restroom.senior_friendly && (
+          <span className="badge badge-senior" title="Staffed public building — clean, accessible restrooms">
+            🧓 {t("badge.senior")}
           </span>
         )}
         {(() => {
           const { isOpen, knownStatus } = isOpenNow(restroom.opening_hours);
           if (!knownStatus) return null;
           return isOpen
-            ? <span className="badge badge-open">🟢 Open now</span>
-            : <span className="badge badge-closed">🔴 Closed</span>;
+            ? <span className="badge badge-open">🟢 {t("filter.openNow")}</span>
+            : <span className="badge badge-closed">🔴 {t("badge.closed")}</span>;
         })()}
         {(() => {
           const s = getStats(restroom.id);
@@ -186,9 +194,21 @@ export default function HeroCard({
         })()}
         {visitCount > 0 && (
           <span className="badge badge-visited" title="You've been here before">
-            👟 visited {visitCount}×
+            👟 {t("badge.visited", { n: visitCount })}
           </span>
         )}
+        {(() => {
+          const warn = getConditionWarning(restroom.id);
+          if (!warn) return null;
+          return (
+            <span
+              className="badge badge-condition-warn"
+              title={`You reported this in the last 24h`}
+            >
+              {warn.icon} {t(`report.${warn.type}`)}
+            </span>
+          );
+        })()}
       </div>
 
       <a
@@ -196,6 +216,7 @@ export default function HeroCard({
         href={directionsUrl}
         target="_blank"
         rel="noopener noreferrer"
+        aria-label={`Get walking directions to ${restroom.name || "this restroom"}`}
         onPointerDown={(e) => e.stopPropagation()}
         onClick={() => {
           trackEvent("go_clicked", {
@@ -221,7 +242,7 @@ export default function HeroCard({
               onShowRoute();
             }}
           >
-            🗺️ Show route
+            🗺️ {t("hero.showRoute")}
           </button>
         )}
         <button
@@ -229,7 +250,7 @@ export default function HeroCard({
           onPointerDown={(e) => e.stopPropagation()}
           onClick={onDetails}
         >
-          More details
+          {t("hero.details")}
         </button>
       </div>
 

@@ -11,6 +11,8 @@ import SearchBar from "./components/SearchBar";
 import CelebrationOverlay from "./components/CelebrationOverlay";
 import PersonaPicker from "./components/PersonaPicker";
 import useOnline from "./hooks/useOnline";
+import useInstallPrompt from "./hooks/useInstallPrompt";
+import InstallPrompt from "./components/InstallPrompt";
 import {
   getPersona,
   hasPickedPersona,
@@ -29,20 +31,27 @@ import AchievementToast from "./components/AchievementToast";
 import VoiceButton from "./components/VoiceButton";
 import { getUserBathrooms } from "./services/userBathrooms";
 import { recordVisit, getAllVisits } from "./services/visitTracker";
-import { getFavorites } from "./services/favorites";
 import { tryUnlock } from "./services/achievements";
 import { touchStreak, getStreak } from "./services/streak";
 import { getTheme, applyTheme, toggleTheme } from "./services/theme";
 import { getComfort, setComfort, toggleComfort } from "./services/comfort";
-import { getPoints } from "./services/conditionReports";
+import { getPoints, isSuppressed, getSuppressedCount, clearSuppressed } from "./services/conditionReports";
+import { postVisit } from "./services/backend";
 import { isOpenNow } from "./utils/hours";
+import { formatDistance } from "./utils/distance";
 import { trackEvent } from "./utils/analytics";
+import { isFlagOn } from "./utils/featureFlags";
+import { normalizeCountry } from "./utils/country";
+import { useI18n, LOCALES } from "./i18n";
 import "./index.css";
 
 // Fallback if geolocation denied (San Francisco)
 const DEFAULT_POSITION = { latitude: 37.7749, longitude: -122.4194 };
 
 function App() {
+  // i18n — locale-aware strings everywhere below
+  const { t, locale, setLocale } = useI18n();
+
   // --- Location ---
   const {
     position: geoPosition,
@@ -62,10 +71,15 @@ function App() {
   const usingSearchedLocation = !!searchedLocation;
 
   // --- Restrooms ---
-  const [restrooms, setRestrooms] = useState([]);
+  // Fetch state is keyed by the position it was fetched FOR, so
+  // loading/error are derived instead of synced in the effect
+  // (react-hooks/set-state-in-effect): a stale key = load in flight.
+  const posKey = position ? `${position.latitude},${position.longitude}` : null;
+  const [fetchState, setFetchState] = useState({ key: null, data: [], error: null });
+  const restrooms = fetchState.data;
+  const apiError = fetchState.key === posKey ? fetchState.error : null;
+  const apiLoading = !!posKey && fetchState.key !== posKey;
   const [userBathrooms, setUserBathrooms] = useState(() => getUserBathrooms());
-  const [apiError, setApiError] = useState(null);
-  const [apiLoading, setApiLoading] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
 
   // --- UI state ---
@@ -88,6 +102,9 @@ function App() {
     free: false,
     openNow: false,
     singleOccupant: false,
+    bench: false,
+    noStairs: false,
+    country: "",
     ...getPersonaFilterDefaults(getPersona()),
   }));
   // Achievement toast queue (shows one at a time)
@@ -100,6 +117,8 @@ function App() {
   const [streak, setStreak] = useState(() => getStreak());
   // Online/offline status
   const isOnline = useOnline();
+  // PWA install nudge — appears from the 2nd distinct-day visit
+  const installPrompt = useInstallPrompt();
   // Apply persona attribute on mount + on change
   useEffect(() => {
     document.documentElement.setAttribute("data-persona", persona);
@@ -142,10 +161,17 @@ function App() {
   };
   // Points (visible badge in header)
   const [points, setPoints] = useState(() => getPoints());
-  // Refresh points when details modal closes (in case condition reports happened)
-  useEffect(() => {
-    if (!detailsOpen) setPoints(getPoints());
-  }, [detailsOpen]);
+  // "Doesn't exist" suppressions can change while the details modal is
+  // open — bump this to re-filter the list after it closes.
+  const [suppressedTick, setSuppressedTick] = useState(0);
+  // Closing the details modal refreshes points + suppressions (condition
+  // reports may have happened inside it) — as an event handler, not an
+  // effect, so there's no cascading render.
+  const closeDetails = () => {
+    setDetailsOpen(null);
+    setPoints(getPoints());
+    setSuppressedTick((t) => t + 1);
+  };
   const onToggleTheme = () => {
     const next = toggleTheme();
     setTheme(next);
@@ -156,27 +182,29 @@ function App() {
   const { record: recordUsage, hint: usageHint, inTypicalWindow } =
     useUsagePatterns();
 
-  // Fetch when position resolves
+  // Fetch when position resolves. Only async setState here; a response
+  // for a position we've since moved away from is dropped.
   useEffect(() => {
-    if (!position) return;
-    setApiLoading(true);
-    setApiError(null);
-    fetchNearbyRestrooms(position.latitude, position.longitude)
+    if (!posKey) return;
+    const [lat, lng] = posKey.split(",").map(Number);
+    let cancelled = false;
+    fetchNearbyRestrooms(lat, lng)
       .then((data) => {
-        setRestrooms(data);
-        setApiLoading(false);
+        if (!cancelled) setFetchState({ key: posKey, data, error: null });
       })
       .catch((err) => {
-        setApiError(err.message);
-        setApiLoading(false);
+        if (!cancelled) setFetchState((s) => ({ key: posKey, data: s.data, error: err.message }));
       });
-  }, [position?.latitude, position?.longitude]);
+    return () => { cancelled = true; };
+  }, [posKey]);
 
   // Merge API + user-added, attach distance, apply filters, sort by distance.
   const sorted = useMemo(() => {
     if (!position) return [];
+    void suppressedTick; // re-filter after "doesn't exist" reports
     const combined = [...restrooms, ...userBathrooms];
     return combined
+      .filter((r) => !isSuppressed(r.id))
       .map((r) => ({
         ...r,
         distance: distanceMeters(
@@ -198,8 +226,17 @@ function App() {
       })
       // Private (single-occupant) chip: only show entries we KNOW are private.
       .filter((r) => !filters.singleOccupant || r.single_occupant === true)
+      // Bench chip: only entries with a bench within resting range (OSM data).
+      .filter((r) => !filters.bench || r.near_bench === true)
+      // No-stairs chip: lenient like Free — hide entries we KNOW are on
+      // another floor or underground; unknown stays visible.
+      .filter((r) => !filters.noStairs || r.ground_floor !== false)
+      // Country dropdown (flag-gated): match normalized country codes.
+      .filter(
+        (r) => !filters.country || normalizeCountry(r.country) === filters.country
+      )
       .sort((a, b) => a.distance - b.distance);
-  }, [restrooms, userBathrooms, position, filters]);
+  }, [restrooms, userBathrooms, position, filters, suppressedTick]);
 
   // Clamp heroIndex if the list shrunk
   const safeIndex = Math.min(heroIndex, Math.max(0, sorted.length - 1));
@@ -258,6 +295,7 @@ function App() {
   const handleGo = (restroom) => {
     if (!restroom) return;
     recordUsage();
+    postVisit(restroom.id); // anonymous cross-user popularity (no-op w/o backend)
     const updated = recordVisit(restroom.id);
     setVisits(getAllVisits());
     // Streak: advance the daily flame counter
@@ -289,6 +327,19 @@ function App() {
     }
   };
 
+  // Country filter (P2 #15, behind the country_filter flag): the
+  // dropdown only appears when the loaded results span 2+ countries —
+  // border towns, or travelers planning ahead via search.
+  const countryOptions = useMemo(() => {
+    if (!isFlagOn("country_filter")) return undefined;
+    const set = new Set();
+    for (const r of [...restrooms, ...userBathrooms]) {
+      const c = normalizeCountry(r.country);
+      if (c) set.add(c);
+    }
+    return Array.from(set).sort();
+  }, [restrooms, userBathrooms]);
+
   // Bucket counts for the header summary ("X within 500m")
   const bucketCounts = useMemo(() => {
     const close = sorted.filter((r) => r.distance <= 500).length;
@@ -302,7 +353,7 @@ function App() {
     return (
       <div className="status-screen">
         <div className="spinner" />
-        <p>Finding your location…</p>
+        <p>{t("status.finding")}</p>
       </div>
     );
   }
@@ -311,7 +362,7 @@ function App() {
     return (
       <div className="status-screen">
         <div className="spinner" />
-        <p>Loading…</p>
+        <p>{t("status.loading")}</p>
       </div>
     );
   }
@@ -319,10 +370,10 @@ function App() {
   if (apiError) {
     return (
       <div className="status-screen">
-        <h2>Couldn't load restrooms</h2>
+        <h2>{t("status.loadFail")}</h2>
         <p>{apiError}</p>
         <button className="cta-button" onClick={() => window.location.reload()}>
-          Try again
+          {t("status.tryAgain")}
         </button>
       </div>
     );
@@ -339,10 +390,10 @@ function App() {
   if (sorted.length === 0) {
     return (
       <div className="status-screen">
-        <h2>No restrooms found nearby</h2>
-        <p>Try refreshing your location.</p>
+        <h2>{t("status.none")}</h2>
+        <p>{t("status.refreshHint")}</p>
         <button className="cta-button" onClick={handleRefresh}>
-          Refresh
+          {t("status.refresh")}
         </button>
       </div>
     );
@@ -366,10 +417,26 @@ function App() {
           <img className="app-icon-img" src={`${import.meta.env.BASE_URL}icon-192.svg`} alt="" width="32" height="32" />
           <h1>
             Gotta Go
-            <span className="app-tag" aria-hidden="true">closest bathroom, instantly</span>
+            <span className="app-tag" aria-hidden="true">{t("app.tagline")}</span>
           </h1>
         </div>
         <div className="header-right">
+          <select
+            className="lang-select"
+            value={locale}
+            onChange={(e) => {
+              setLocale(e.target.value);
+              trackEvent("locale_changed", { locale: e.target.value });
+            }}
+            aria-label="Language"
+            title="Language"
+          >
+            {LOCALES.map((l) => (
+              <option key={l.code} value={l.code}>
+                {l.flag} {l.code.toUpperCase()}
+              </option>
+            ))}
+          </select>
           {points.total > 0 && (
             <div
               className="points-badge"
@@ -419,21 +486,21 @@ function App() {
 
       {usingFallback && (
         <div className="fallback-banner">
-          Showing San Francisco — enable location for your area
+          {t("banner.fallback")}
         </div>
       )}
 
       {!isOnline && (
         <div className="offline-banner">
-          📡 Offline — showing your last cached bathrooms
+          📡 {t("banner.offline")}
         </div>
       )}
 
       {usingSearchedLocation && (
         <div className="searched-banner">
-          🔎 Showing results near <strong>{searchedLocation.displayName?.split(",").slice(0, 2).join(",")}</strong>
+          🔎 {t("banner.searchedPrefix")} <strong>{searchedLocation.displayName?.split(",").slice(0, 2).join(",")}</strong>
           <button onClick={() => setSearchedLocation(null)} className="searched-clear">
-            back to me
+            {t("banner.backToMe")}
           </button>
         </div>
       )}
@@ -454,7 +521,17 @@ function App() {
         filters={filters}
         onChange={setFilters}
         onLocate={handleRefresh}
+        countryOptions={countryOptions}
       />
+
+      {/* Screen-reader announcement of hero changes — swipes and card
+          promotions are pointer-driven and otherwise silent. */}
+      <div className="sr-only" role="status" aria-live="polite">
+        {hero &&
+          `${safeIndex === 0 ? t("hero.closest") : t("hero.nth", { n: safeIndex + 1 })}: ${
+            hero.name || "?"
+          }, ${formatDistance(hero.distance)} ${t("hero.away")}`}
+      </div>
 
       <main className="scroll-area">
         {usageHint && (
@@ -468,21 +545,38 @@ function App() {
         {/* Visible total + nearby bucket counts (Legal-Walls-style) */}
         <div className="count-summary">
           <span className="count-num">{bucketCounts.total}</span>
-          <span className="count-label">nearby</span>
+          <span className="count-label">{t("count.nearby")}</span>
           {bucketCounts.close > 0 && (
             <>
               <span className="count-divider" />
               <span className="count-bucket">
-                <strong>{bucketCounts.close}</strong> within 500&thinsp;m
+                <strong>{bucketCounts.close}</strong> {t("count.within", { d: "500 m" })}
               </span>
             </>
           )}
           {bucketCounts.med > bucketCounts.close && (
             <span className="count-bucket count-bucket-dim">
-              <strong>{bucketCounts.med}</strong> within 1&thinsp;km
+              <strong>{bucketCounts.med}</strong> {t("count.within", { d: "1 km" })}
             </span>
           )}
         </div>
+
+        {getSuppressedCount() > 0 && (
+          <div className="suppressed-row">
+            <span aria-hidden="true">👻</span>{" "}
+            {t("suppressed.hidden", { n: getSuppressedCount() })}
+            <button
+              className="suppressed-restore"
+              onClick={() => {
+                clearSuppressed();
+                setSuppressedTick((t) => t + 1);
+                trackEvent("suppressed_restored");
+              }}
+            >
+              {t("suppressed.restore")}
+            </button>
+          </div>
+        )}
 
         {simpleMode ? (
           <SimpleHero
@@ -544,7 +638,7 @@ function App() {
             trackEvent("map_opened", { restroom_count: sorted.length });
           }}
         >
-          🗺️  View all {sorted.length} on map
+          🗺️  {t("map.viewAll", { n: sorted.length })}
         </button>
 
         <button
@@ -557,7 +651,7 @@ function App() {
           title={!geoPosition ? "Enable location to add a bathroom" : "Add a bathroom at your current location"}
         >
           <span className="plus" aria-hidden="true">+</span>
-          Add a bathroom here
+          {t("add.button")}
         </button>
 
         <a
@@ -567,7 +661,7 @@ function App() {
           rel="noopener noreferrer"
           onClick={() => trackEvent("tip_clicked")}
         >
-          ☕ Tip the dev
+          ☕ {t("tip.button")}
         </a>
 
         <p className="footer-note">
@@ -582,6 +676,14 @@ function App() {
         </p>
       </main>
 
+      {installPrompt.visible && !mapOpen && (
+        <InstallPrompt
+          mode={installPrompt.mode}
+          onInstall={installPrompt.install}
+          onDismiss={installPrompt.dismiss}
+        />
+      )}
+
       {/* Floating Map pill — Airbnb-style "see results on map" */}
       {!mapOpen && sorted.length > 0 && (
         <button
@@ -593,7 +695,7 @@ function App() {
           aria-label={`Show map (${sorted.length} bathrooms)`}
         >
           <span className="map-pill-icon">🗺️</span>
-          <span className="map-pill-label">Map</span>
+          <span className="map-pill-label">{t("map.label")}</span>
           <span className="map-pill-count">{sorted.length}</span>
         </button>
       )}
@@ -623,9 +725,10 @@ function App() {
       )}
 
       <RestroomPanel
+        key={detailsOpen?.id || "none"}
         restroom={detailsOpen}
         visitRecord={detailsOpen ? visits[detailsOpen.id] : null}
-        onClose={() => setDetailsOpen(null)}
+        onClose={closeDetails}
         onAchievement={(a) => setAchievement(a)}
       />
 
@@ -634,19 +737,21 @@ function App() {
         onDismiss={() => setAchievement(null)}
       />
 
-      <CelebrationOverlay
-        isOpen={!!celebration}
-        bathroomName={celebration?.bathroomName}
-        pointsEarned={celebration?.pointsEarned}
-        streakCount={celebration?.streakCount}
-        onDone={() => setCelebration(null)}
-      />
+      {celebration && (
+        <CelebrationOverlay
+          isOpen
+          bathroomName={celebration.bathroomName}
+          pointsEarned={celebration.pointsEarned}
+          streakCount={celebration.streakCount}
+          onDone={() => setCelebration(null)}
+        />
+      )}
 
       {addOpen && (
         <AddBathroomModal
           position={geoPosition}
           onClose={() => setAddOpen(false)}
-          onAdded={(entry) => {
+          onAdded={() => {
             const updated = getUserBathrooms();
             setUserBathrooms(updated);
             setHeroIndex(0);

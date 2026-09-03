@@ -32,6 +32,11 @@ jobs:
         run: npm run lint --if-present
         continue-on-error: false
 
+      # Unit tests — pure service/util layer (vitest)
+      - name: Unit tests
+        run: npm test --if-present
+        continue-on-error: false
+
       - name: Build PR bundle
         env:
           # PR previews share the prod GA ID with an extra dimension so

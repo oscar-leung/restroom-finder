@@ -35,6 +35,9 @@ jobs:
         env:
           VITE_GA_ID: ${{ secrets.VITE_GA_ID }}
           VITE_ADSENSE_CLIENT: ${{ secrets.VITE_ADSENSE_CLIENT }}
+          # Backend (workers/RUNBOOK.md) — empty until the worker is
+          # deployed and this secret is set; the client no-ops without it
+          VITE_API_BASE: ${{ secrets.VITE_API_BASE }}
 
       - uses: actions/configure-pages@v5
         with:

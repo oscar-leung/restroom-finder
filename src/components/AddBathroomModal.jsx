@@ -3,6 +3,7 @@ import { addUserBathroom, refugeSubmitUrl } from "../services/userBathrooms";
 import { contributeToRefuge } from "../services/refugeContribute";
 import { reverseGeocode } from "../services/geocoder";
 import { trackEvent } from "../utils/analytics";
+import { useI18n } from "../i18n";
 
 /**
  * AddBathroomModal — "I'm at a bathroom right now, add it to the map".
@@ -17,6 +18,7 @@ import { trackEvent } from "../utils/analytics";
  *   onAdded   – called with the newly-created entry so App can update its list
  */
 export default function AddBathroomModal({ position, onClose, onAdded }) {
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const [accessible, setAccessible] = useState(false);
   const [unisex, setUnisex] = useState(false);
@@ -29,14 +31,16 @@ export default function AddBathroomModal({ position, onClose, onAdded }) {
   // most contributors don't know exact addresses. We reverse-geocode
   // their GPS via Nominatim and offer the result as a one-tap fill.
   const [nearby, setNearby] = useState(null); // { displayName, city, neighborhood }
+  const posLat = position?.latitude;
+  const posLng = position?.longitude;
   useEffect(() => {
-    if (!position) return;
+    if (posLat == null || posLng == null) return;
     let cancelled = false;
-    reverseGeocode(position.latitude, position.longitude).then((res) => {
+    reverseGeocode(posLat, posLng).then((res) => {
       if (!cancelled) setNearby(res);
     });
     return () => { cancelled = true; };
-  }, [position?.latitude, position?.longitude]);
+  }, [posLat, posLng]);
 
   const useNearbyName = () => {
     if (!nearby?.displayName) return;
@@ -96,9 +100,9 @@ export default function AddBathroomModal({ position, onClose, onAdded }) {
 
         {!submitted ? (
           <>
-            <h2 className="modal-title">Add a bathroom here</h2>
+            <h2 className="modal-title">{t("add.button")}</h2>
             <p className="modal-address">
-              📍 Using your current location ({position?.latitude.toFixed(5)},{" "}
+              📍 {t("add.usingLocation")} ({position?.latitude.toFixed(5)},{" "}
               {position?.longitude.toFixed(5)})
             </p>
 
@@ -111,20 +115,20 @@ export default function AddBathroomModal({ position, onClose, onAdded }) {
               >
                 <span className="snap-icon" aria-hidden="true">📌</span>
                 <span className="snap-text">
-                  <span className="snap-label">Nearest place:</span>{" "}
+                  <span className="snap-label">{t("add.nearestPlace")}</span>{" "}
                   <strong>{nearby.displayName.split(",").slice(0, 2).join(",")}</strong>
                 </span>
-                <span className="snap-cta">use →</span>
+                <span className="snap-cta">{t("add.use")}</span>
               </button>
             )}
 
             <form className="add-form" onSubmit={submit}>
               <div className="add-form-field">
-                <label htmlFor="add-name">What's it called?</label>
+                <label htmlFor="add-name">{t("add.nameLabel")}</label>
                 <input
                   id="add-name"
                   type="text"
-                  placeholder="e.g. Starbucks on 5th, library 2nd floor"
+                  placeholder={t("add.namePlaceholder")}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -134,7 +138,7 @@ export default function AddBathroomModal({ position, onClose, onAdded }) {
               </div>
 
               <div className="add-form-field">
-                <label>Tags</label>
+                <label>{t("add.tags")}</label>
                 <div className="add-form-checks">
                   <label className="add-form-check">
                     <input
@@ -142,7 +146,7 @@ export default function AddBathroomModal({ position, onClose, onAdded }) {
                       checked={accessible}
                       onChange={(e) => setAccessible(e.target.checked)}
                     />
-                    ♿ Accessible
+                    ♿ {t("filter.accessible")}
                   </label>
                   <label className="add-form-check">
                     <input
@@ -150,16 +154,16 @@ export default function AddBathroomModal({ position, onClose, onAdded }) {
                       checked={unisex}
                       onChange={(e) => setUnisex(e.target.checked)}
                     />
-                    ⚧ Gender Neutral
+                    ⚧ {t("filter.unisex")}
                   </label>
                 </div>
               </div>
 
               <div className="add-form-field">
-                <label htmlFor="add-comment">Notes (optional)</label>
+                <label htmlFor="add-comment">{t("add.notesLabel")}</label>
                 <textarea
                   id="add-comment"
-                  placeholder="Code on the door? Always clean? Anything useful for the next person."
+                  placeholder={t("add.notesPlaceholder")}
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   maxLength={300}
@@ -174,52 +178,49 @@ export default function AddBathroomModal({ position, onClose, onAdded }) {
                   onChange={(e) => setShareUpstream(e.target.checked)}
                 />
                 <span>
-                  <strong>Share with everyone</strong> — also send this to
-                  Refuge Restrooms so the world's open data improves.
-                  Their moderators review before publishing.
+                  <strong>{t("add.shareTitle")}</strong> {t("add.shareBody")}
                 </span>
               </label>
 
               <div className="add-form-actions">
                 <button type="submit" className="add-form-submit">
-                  Save{shareUpstream ? " + share" : " to my map"}
+                  {shareUpstream ? t("add.saveShare") : t("add.saveLocal")}
                 </button>
               </div>
             </form>
           </>
         ) : (
           <>
-            <h2 className="modal-title">✓ Saved</h2>
+            <h2 className="modal-title">{t("add.savedTitle")}</h2>
             <p className="modal-address">
-              "{submitted.name}" is now in your list, sorted by distance.
+              {t("add.savedBody", { name: submitted.name })}
             </p>
 
             {/* Upstream contribution status */}
             {upstreamStatus === "pending" && (
               <div className="upstream-banner upstream-pending">
                 <div className="spinner spinner-sm" />
-                Sharing with Refuge Restrooms…
+                {t("add.upstreamPending")}
               </div>
             )}
             {upstreamStatus === "ok" && (
               <div className="upstream-banner upstream-ok">
-                ✓ Shared with Refuge Restrooms — pending their review.
-                The world thanks you.
+                {t("add.upstreamOk")}
               </div>
             )}
             {upstreamStatus === "error" && (
               <div className="upstream-banner upstream-error">
-                Couldn't share upstream right now. Your local copy is
-                fine. <a href={refugeSubmitUrl()} target="_blank" rel="noopener noreferrer">
-                Submit it manually here.</a>
+                {t("add.upstreamError")}{" "}
+                <a href={refugeSubmitUrl()} target="_blank" rel="noopener noreferrer">
+                {t("add.submitManually")}</a>
               </div>
             )}
             {upstreamStatus === null && !shareUpstream && (
               <div className="upstream-banner upstream-info">
-                Saved on your device only. Want strangers to find it too?{" "}
+                {t("add.localOnly")}{" "}
                 <a href={refugeSubmitUrl()} target="_blank" rel="noopener noreferrer"
                    onClick={() => trackEvent("refuge_submit_clicked")}>
-                  Share with Refuge Restrooms →
+                  {t("add.shareLink")}
                 </a>
               </div>
             )}
@@ -228,7 +229,7 @@ export default function AddBathroomModal({ position, onClose, onAdded }) {
               className="cta-button"
               onClick={onClose}
             >
-              Done
+              {t("common.done")}
             </button>
           </>
         )}

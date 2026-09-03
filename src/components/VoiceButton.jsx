@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { trackEvent } from "../utils/analytics";
+import { useI18n } from "../i18n";
 
 /**
  * VoiceButton — uses the Web Speech API for "find a bathroom" voice
@@ -30,10 +31,19 @@ export default function VoiceButton({
   onRoulette,
 }) {
   const [listening, setListening] = useState(false);
+  const { t } = useI18n();
   const [transcript, setTranscript] = useState("");
   const recRef = useRef(null);
 
   const supported = !!SpeechRecognition;
+
+  // App passes fresh arrow-function callbacks every render; keeping the
+  // latest set in a ref (updated in an effect) lets the recognizer be
+  // created ONCE instead of torn down per render.
+  const handlersRef = useRef({});
+  useEffect(() => {
+    handlersRef.current = { onGo, onNext, onOpenMap, onAddBathroom, onRoulette };
+  }, [onGo, onNext, onOpenMap, onAddBathroom, onRoulette]);
 
   useEffect(() => {
     if (!supported) return;
@@ -41,6 +51,22 @@ export default function VoiceButton({
     rec.lang = "en-US";
     rec.continuous = false;
     rec.interimResults = true;
+
+    const handleCommand = (text) => {
+      trackEvent("voice_command", { transcript: text });
+      const h = handlersRef.current;
+      if (/(find|where|nearest|closest|nearby).*?(bathroom|restroom|toilet|loo)/.test(text)) {
+        h.onGo?.();
+      } else if (/(next|another|skip)/.test(text)) {
+        h.onNext?.();
+      } else if (/(show|open).*map/.test(text)) {
+        h.onOpenMap?.();
+      } else if (/add.*(bathroom|restroom|toilet)/.test(text)) {
+        h.onAddBathroom?.();
+      } else if (/(random|surprise|something new)/.test(text)) {
+        h.onRoulette?.();
+      }
+    };
 
     rec.onresult = (e) => {
       const last = e.results[e.results.length - 1];
@@ -53,24 +79,9 @@ export default function VoiceButton({
 
     recRef.current = rec;
     return () => {
-      try { rec.abort(); } catch {}
+      try { rec.abort(); } catch { /* already stopped */ }
     };
   }, [supported]);
-
-  const handleCommand = (text) => {
-    trackEvent("voice_command", { transcript: text });
-    if (/(find|where|nearest|closest|nearby).*?(bathroom|restroom|toilet|loo)/.test(text)) {
-      onGo?.();
-    } else if (/(next|another|skip)/.test(text)) {
-      onNext?.();
-    } else if (/(show|open).*map/.test(text)) {
-      onOpenMap?.();
-    } else if (/add.*(bathroom|restroom|toilet)/.test(text)) {
-      onAddBathroom?.();
-    } else if (/(random|surprise|something new)/.test(text)) {
-      onRoulette?.();
-    }
-  };
 
   const toggle = () => {
     if (!supported) return;
@@ -91,7 +102,7 @@ export default function VoiceButton({
   if (!supported) {
     return (
       <button className="voice-btn voice-btn-unsupported" disabled title="Voice not supported in this browser">
-        🎙️ <span className="voice-label">Voice</span>
+        🎙️ <span className="voice-label">{t("voice.label")}</span>
       </button>
     );
   }
@@ -104,7 +115,7 @@ export default function VoiceButton({
       aria-pressed={listening}
     >
       <span className="voice-icon" aria-hidden="true">{listening ? "🔴" : "🎙️"}</span>
-      <span className="voice-label">{listening ? "Listening…" : "Voice"}</span>
+      <span className="voice-label">{listening ? t("voice.listening") : t("voice.label")}</span>
       {transcript && listening && <span className="voice-transcript">"{transcript}"</span>}
     </button>
   );

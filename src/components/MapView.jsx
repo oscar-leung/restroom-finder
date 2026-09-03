@@ -2,7 +2,14 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-
 import { useEffect, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { fetchWalkingRoute } from "../services/routing";
+// Native leaflet.markercluster (side-effect: adds L.markerClusterGroup).
+// The react-leaflet-cluster WRAPPER broke dev module init in this stack
+// (see git history); driving the plugin imperatively avoids the wrapper.
+import "leaflet.markercluster";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import { fetchWalkingRoute, describeStep, stepArrow } from "../services/routing";
+import { formatDistance } from "../utils/distance";
+import { useI18n } from "../i18n";
 
 /**
  * Build a custom Leaflet DivIcon from an SVG string.
@@ -72,6 +79,57 @@ function restroomPin({ selected, accessible, source, visitCount = 0 }) {
 }
 
 /**
+ * ClusteredPins — restroom markers managed imperatively inside a
+ * leaflet.markercluster group. Dense downtowns collapse into numbered
+ * cluster bubbles instead of 150 overlapping pins (the top "map
+ * display issues" complaint against the competitor).
+ *
+ * The SELECTED pin is deliberately excluded — it renders as a normal
+ * react-leaflet Marker so the route polyline always ends at a visible
+ * pin, never inside a cluster bubble.
+ */
+function ClusteredPins({ restrooms, visits, selectedId, onSelect }) {
+  const map = useMap();
+
+  useEffect(() => {
+    const group = L.markerClusterGroup({
+      maxClusterRadius: 46,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      // Street level: show the actual pins, clustering has done its job
+      disableClusteringAtZoom: 17,
+      iconCreateFunction: (cluster) =>
+        L.divIcon({
+          html: `<div class="cluster-pin">${cluster.getChildCount()}</div>`,
+          className: "custom-pin",
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+        }),
+    });
+
+    for (const r of restrooms) {
+      if (r.id === selectedId) continue; // rendered unclustered outside
+      const visitCount = visits[r.id]?.count || 0;
+      const marker = L.marker([r.latitude, r.longitude], {
+        icon: restroomPin({
+          selected: false,
+          accessible: r.accessible,
+          source: r.source,
+          visitCount,
+        }),
+      });
+      marker.on("click", () => onSelect(r));
+      group.addLayer(marker);
+    }
+
+    map.addLayer(group);
+    return () => { map.removeLayer(group); };
+  }, [map, restrooms, visits, selectedId, onSelect]);
+
+  return null;
+}
+
+/**
  * RecenterMap — smoothly pans the map when `center` changes.
  * We use flyTo for a nice animated transition rather than a hard jump.
  */
@@ -80,7 +138,11 @@ function RecenterMap({ center, trigger }) {
   useEffect(() => {
     if (!center) return;
     map.flyTo(center, 16, { duration: 0.6 });
-  }, [trigger]); // re-run when trigger changes (e.g. user taps pin or locate btn)
+    // Intentionally NOT depending on center/map: recentering on every
+    // GPS jitter would fight the user's panning. Only an explicit
+    // trigger bump (pin tap, "Near me") flies the camera.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trigger]);
   return null;
 }
 
@@ -102,26 +164,34 @@ export default function MapView({
   selectedId,
   recenterKey,
 }) {
+  const { t } = useI18n();
   const center = [position.latitude, position.longitude];
   const hasVisits = Object.keys(visits).length > 0;
 
-  // Real walking-route polyline via OSRM. Falls back to straight line
-  // if OSRM fails or returns nothing.
-  const [routeCoords, setRouteCoords] = useState(null);
+  // Real walking-route via OSRM (polyline + turn-by-turn steps).
+  // Falls back to straight line if OSRM fails or returns nothing.
+  // Keyed by (selection, origin) so a stale route never renders and the
+  // effect needs no synchronous reset.
+  const sel = restrooms.find((r) => r.id === selectedId);
+  const routeKey = sel
+    ? `${sel.id}|${position.latitude},${position.longitude}`
+    : null;
+  const [routeState, setRouteState] = useState({ key: null, route: null });
+  const selLat = sel?.latitude;
+  const selLng = sel?.longitude;
   useEffect(() => {
+    if (!routeKey) return;
     let cancelled = false;
-    setRouteCoords(null);
-    const sel = restrooms.find((r) => r.id === selectedId);
-    if (!sel) return;
-    fetchWalkingRoute(
-      { lat: position.latitude, lng: position.longitude },
-      { lat: sel.latitude, lng: sel.longitude }
-    ).then((res) => {
+    const [, origin] = routeKey.split("|");
+    const [lat, lng] = origin.split(",").map(Number);
+    fetchWalkingRoute({ lat, lng }, { lat: selLat, lng: selLng }).then((res) => {
       if (cancelled || !res) return;
-      setRouteCoords(res.coordinates);
+      setRouteState({ key: routeKey, route: res });
     });
     return () => { cancelled = true; };
-  }, [selectedId, position.latitude, position.longitude]);
+  }, [routeKey, selLat, selLng]);
+  const route = routeState.key === routeKey ? routeState.route : null;
+  const routeCoords = route?.coordinates || null;
 
   return (
     <>
@@ -147,7 +217,6 @@ export default function MapView({
             We try OSRM (real walking path) first; while it's loading or
             if it fails, show the straight-line fallback. */}
         {(() => {
-          const sel = restrooms.find((r) => r.id === selectedId);
           if (!sel) return null;
           const useReal = routeCoords && routeCoords.length > 1;
           const positions = useReal
@@ -180,47 +249,65 @@ export default function MapView({
           );
         })()}
 
-        {/* Restroom pins. Clustering temporarily reverted — the
-            react-leaflet-cluster lib breaks SSR/dev module init in
-            this stack; we'll do native L.markerClusterGroup wiring
-            in a follow-up PR. For now this scales fine to ~200 pins. */}
-        {restrooms.map((r) => {
-          const visitCount = visits[r.id]?.count || 0;
-          return (
-            <Marker
-              key={r.id}
-              position={[r.latitude, r.longitude]}
-              icon={restroomPin({
-                selected: r.id === selectedId,
-                accessible: r.accessible,
-                source: r.source,
-                visitCount,
-              })}
-              eventHandlers={{ click: () => onSelect(r) }}
-            >
-              <Popup>
-                {r.name || "Unnamed restroom"}
-                {visitCount > 0 && <><br />Visited {visitCount}×</>}
-              </Popup>
-            </Marker>
-          );
-        })}
+        {/* Restroom pins — clustered natively (see ClusteredPins). */}
+        <ClusteredPins
+          restrooms={restrooms}
+          visits={visits}
+          selectedId={selectedId}
+          onSelect={onSelect}
+        />
+
+        {/* The selected pin stays unclustered so the route line always
+            ends at a visible marker */}
+        {sel && (
+          <Marker
+            position={[sel.latitude, sel.longitude]}
+            icon={restroomPin({
+              selected: true,
+              accessible: sel.accessible,
+              source: sel.source,
+              visitCount: visits[sel.id]?.count || 0,
+            })}
+            eventHandlers={{ click: () => onSelect(sel) }}
+          >
+            <Popup>
+              {sel.name || "Unnamed restroom"}
+            </Popup>
+          </Marker>
+        )}
       </MapContainer>
+
+      {/* Turn-by-turn strip (P0 #6) — simplified directional steps from
+          OSRM. The demo profile carries no street names, so each step
+          is "Turn left · 120 m" style. Skip trivial 1-2 step routes. */}
+      {route && route.steps && route.steps.length > 2 && (
+        <div className="route-steps" role="list" aria-label="Walking directions">
+          {route.steps.map((s, i) => (
+            <span key={i} className="route-step" role="listitem">
+              <span className="route-step-arrow" aria-hidden="true">{stepArrow(s)}</span>
+              {describeStep(s)}
+              {s.distance >= 10 && s.type !== "arrive" && (
+                <span className="route-step-dist">{formatDistance(s.distance)}</span>
+              )}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Legend overlay */}
       <div className="map-legend" aria-hidden="true">
         <div className="map-legend-row">
           <span className="map-legend-pin map-legend-pin-default" />
-          <span>Public</span>
+          <span>{t("legend.public")}</span>
         </div>
         <div className="map-legend-row">
           <span className="map-legend-pin map-legend-pin-user" />
-          <span>Added by you</span>
+          <span>{t("legend.addedByYou")}</span>
         </div>
         {hasVisits && (
           <div className="map-legend-row">
             <span className="map-legend-pin map-legend-pin-visited" />
-            <span>Your usuals (sized by visits)</span>
+            <span>{t("legend.usuals")}</span>
           </div>
         )}
       </div>

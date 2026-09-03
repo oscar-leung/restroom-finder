@@ -76,7 +76,7 @@ export default function useSwipe({
     onPointerMove,
     onPointerUp,
     onPointerCancel: reset,
-    onPointerLeave: (e) => {
+    onPointerLeave: () => {
       // If the user drags off the element, don't count it as a swipe
       if (isDragging) reset();
     },

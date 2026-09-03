@@ -1,0 +1,13 @@
+# Gotta Go backend — Cloudflare Worker config.
+# Deploy steps in RUNBOOK.md (needs your Cloudflare account, ~10 min).
+
+name = "gotta-go-api"
+main = "api.js"
+compatibility_date = "2026-08-01"
+
+# KV namespace for reports + visit counts. Create with:
+#   npx wrangler kv namespace create REPORTS
+# then paste the returned id below.
+[[kv_namespaces]]
+binding = "REPORTS"
+id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"

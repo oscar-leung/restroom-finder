@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trackEvent } from "../utils/analytics";
+import { useI18n } from "../i18n";
 
 /**
  * Toilet Roulette — a deliberately silly button.
@@ -15,6 +16,7 @@ import { trackEvent } from "../utils/analytics";
  * differentiator.
  */
 export default function RouletteButton({ candidates, onPick }) {
+  const { t } = useI18n();
   const [spinning, setSpinning] = useState(false);
 
   const roll = async () => {
@@ -30,10 +32,9 @@ export default function RouletteButton({ candidates, onPick }) {
     const teaseDuration = 600;
     const tickMs = 80;
     const ticks = Math.floor(teaseDuration / tickMs);
+    // We could show a visual reel of candidates flipping by here; for
+    // v1 we just spin the icon for the tease window and reveal at the end.
     for (let i = 0; i < ticks; i++) {
-      const teaser = candidates[Math.floor(Math.random() * candidates.length)];
-      // We could update an internal "currently displaying" state here for a
-      // visual reel; for v1 we just spin the icon and reveal at the end.
       await new Promise((r) => setTimeout(r, tickMs));
     }
 
@@ -52,7 +53,7 @@ export default function RouletteButton({ candidates, onPick }) {
     >
       <span className="roulette-die" aria-hidden="true">🎲</span>
       <span className="roulette-label">
-        {spinning ? "Picking…" : "Try somewhere new"}
+        {spinning ? t("roulette.spinning") : t("roulette.label")}
       </span>
     </button>
   );
