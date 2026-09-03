@@ -45,3 +45,27 @@ from every page. We had About and Privacy only. Added `terms.html` and
 
 **Needs Oscar:** AdSense payments/tax profile · Google Play $25 · Apple $99 +
 macOS 14.5/Xcode 16 · Reddit posts in THIS_WEEK_POSTS.md · decide on custom domain.
+
+---
+
+## 2026-09-03 — follow-up (requested by Oscar)
+
+**Updated `restroom-access-laws.html` with municipal law.** Added a
+"What Cities Are Doing: Portland and New York" section (1,942 → 2,549 words),
+plus one FAQ, with the FAQPage JSON-LD kept in sync (6 visible = 6 schema).
+
+Corrected an error from the first run's scouting notes: NYC's bathroom law
+passed **April 10, 2025** (Intro 694-A, Nurse) — not 2026. The 2026 items are
+two newer bills (ADA restrooms in public buildings; a capital funding plan)
+that were introduced, not passed. Facts verified against the NYC Council press
+release and Portland.gov, not the search snippets.
+
+Key facts now in the guide: NYC targets ≥2,120 public bathrooms by 2035, half
+publicly owned, against ~1,100 today for 8.6M residents (1 per 7,820); builds on
+Local Law 114 of 2022 (one feasible location per ZIP). Portland's Feb 11, 2026
+ordinance is signage-only — all-user signs on single-occupancy restrooms in
+places of public accommodation, no construction, ~$5 per sign, extending a 2015
+city-buildings resolution to the private sector.
+
+Framing kept honest: NYC's is a planning/target law, not a right you can invoke;
+Portland's changes labels, not supply. Neither is a substitute for Ally's Law.
