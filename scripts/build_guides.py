@@ -93,6 +93,10 @@ GUIDES = {
         "title": "Surviving Festival and Stadium Bathrooms",
         "desc": "The porta-potty timing curve, where the empty banks are, mid-inning stadium strategy, and the essentials kit.",
     },
+    "stores-bathroom-without-buying": {
+        "title": "Which Stores Let You Use the Bathroom Without Buying Anything",
+        "desc": "Chain-by-chain: who still lets you walk in, who changed their policy, and where a purchase is realistically expected.",
+    },
     "best-restroom-finder-apps": {
         "title": "The Best Restroom Finder Apps and Maps, Compared",
         "desc": "Flush, Refuge Restrooms, Google Maps, city programs, and Gotta Go — an honest comparison of what each does best (yes, we made one of them).",
@@ -105,7 +109,8 @@ CLUSTERS = [
     ["public-restrooms-san-francisco", "public-restrooms-new-york", "public-restrooms-los-angeles",
      "public-restrooms-chicago", "public-restrooms-las-vegas", "public-restrooms-seattle",
      "public-restrooms-boston", "public-restrooms-washington-dc", "public-restrooms-san-diego"],
-    ["restroom-access-laws", "traveling-with-ibd", "cleanest-public-restrooms", "best-restroom-finder-apps"],
+    ["restroom-access-laws", "traveling-with-ibd", "cleanest-public-restrooms", "best-restroom-finder-apps",
+     "stores-bathroom-without-buying"],
     ["road-trip-bathroom-guide", "hiking-outdoors-bathroom-guide", "airport-bathroom-guide",
      "festival-event-bathroom-guide", "bathrooms-with-kids", "theme-park-bathroom-guide"],
 ]
