@@ -182,3 +182,45 @@ Deliberately **not** done: re-adding the AdSense snippet to the portfolio root
 (payment/tax profile) · decide portfolio-root snippet vs. custom domain ·
 decide on the "Gotta Go" name collision · Google Play $25 · Apple $99 +
 macOS 14.5/Xcode 16 · Reddit posts in THIS_WEEK_POSTS.md.
+
+
+---
+
+## 2026-09-21 — run 4 (interactive, Oscar present)
+
+**Gap in coverage:** no Scout runs between Sept 8 and Sept 21. Scheduled tasks
+only fire while the desktop app is open, so the daily cadence silently stopped
+for 12 days. Worth knowing: this watch is not a substitute for the app being run.
+
+**Fixed — qa-portfolio Nightly, red 3 nights running (Sept 18/19/20).** Both
+test suites were passing the whole time (Selenium 2m37s, Playwright 32s); only
+the "Publish reports to Pages" job failed, at `actions/configure-pages@v5`:
+Pages had never been enabled on the repo (`GET /pages` → 404) and GITHUB_TOKEN
+cannot create a Pages site. Enabled Pages with `build_type=workflow` via the
+API and re-ran: all three jobs green. Nightly reports now public at
+https://oscar-leung.github.io/qa-portfolio/ — a strong interview artifact, and
+it removes a red badge that was misrepresenting a green suite.
+
+**Shipped — `stores-bathroom-without-buying.html`** (1,990 words), the #1 ranked
+keyword gap from run 3. Chain-by-chain policy with a mobile-scrollable summary
+table, cross-referenced to the Restroom Access Act guide. Facts verified against
+sources; policies stated as official policy with franchise variance called out,
+never as guarantees. Now 20 guides, 23 sitemap URLs.
+
+**Search Console — still the ceiling, and still blocked.** Both sitemaps remain
+"Couldn't fetch", last read Aug 30, 0 pages discovered; 3 pages indexed, 0
+impressions. Re-verified the files are fine: both HTTP 200, `application/xml`,
+25→23 `<loc>` entries, robots.txt allows all and lists both. Attempted to
+re-submit and the Chrome extension went unresponsive mid-interaction —
+consistent with run 3's finding that an ad blocker breaks Google consoles in
+Oscar's Chrome. **Needs Oscar: allowlist search.google.com + adsense.google.com,
+then delete and re-add both sitemaps.** Until this clears, new content has no
+discovery path and further writing has sharply diminishing returns.
+
+**Standing correction carried forward:** AdSense is NOT in review — the account
+was never activated (run 3). Nothing is pending on Google's side.
+
+**Needs Oscar:** allowlist + re-submit sitemaps (highest value, ~30s) · AdSense
+payments/tax profile · Google Play $25 · Apple $99 + macOS 14.5/Xcode 16 ·
+Reddit posts in THIS_WEEK_POSTS.md · decide on custom domain (raised in runs 2,
+3 and reinforced by the name-collision finding).
