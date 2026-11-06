@@ -25,12 +25,12 @@ function cacheGet(q) {
       memCache.set(q, parsed);
       return parsed;
     }
-  } catch {}
+  } catch { /* ignore: best-effort storage */ }
   return null;
 }
 function cacheSet(q, results) {
   memCache.set(q, results);
-  try { sessionStorage.setItem(`gg_geo_${q}`, JSON.stringify(results)); } catch {}
+  try { sessionStorage.setItem(`gg_geo_${q}`, JSON.stringify(results)); } catch { /* ignore: best-effort storage */ }
 }
 
 /**

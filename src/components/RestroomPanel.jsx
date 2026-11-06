@@ -5,7 +5,7 @@ import { isOpenNow, formatHours } from "../utils/hours";
 import { isFavorite, toggleFavorite } from "../services/favorites";
 import { tryUnlock } from "../services/achievements";
 import { reportClean, getCleaningLog, formatRelative, getBountyStatus } from "../services/cleaningLog";
-import { uploadPhoto, getPhotos, migrateLegacyPhotos } from "../services/photos";
+import { uploadPhoto, getPhotos } from "../services/photos";
 import { reportCondition, getBathroomState, REPORT_TYPES } from "../services/conditionReports";
 import { trackEvent } from "../utils/analytics";
 import Reviews from "./Reviews";

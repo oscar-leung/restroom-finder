@@ -176,14 +176,14 @@ export function setFlag(key, variant) {
     const obj = raw ? JSON.parse(raw) : {};
     obj[key] = variant;
     localStorage.setItem("ff_overrides", JSON.stringify(obj));
-  } catch {}
+  } catch { /* ignore: best-effort storage */ }
 }
 
 /** Clear all local overrides. */
 export function clearOverrides() {
   try {
     localStorage.removeItem("ff_overrides");
-  } catch {}
+  } catch { /* ignore: best-effort storage */ }
 }
 
 // Expose helpers in dev for fast QA

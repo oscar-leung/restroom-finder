@@ -228,7 +228,7 @@ function cacheKey(lat, lng) {
 function readCache() {
   try { return JSON.parse(localStorage.getItem(CACHE_KEY)) || {}; } catch { return {}; }
 }
-function writeCache(o) { try { localStorage.setItem(CACHE_KEY, JSON.stringify(o)); } catch {} }
+function writeCache(o) { try { localStorage.setItem(CACHE_KEY, JSON.stringify(o)); } catch { /* ignore: best-effort storage */ } }
 
 function cacheGet(lat, lng) {
   return readCache()[cacheKey(lat, lng)] || null;

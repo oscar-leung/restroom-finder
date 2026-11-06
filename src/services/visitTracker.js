@@ -32,7 +32,7 @@ function read() {
 function write(obj) {
   try {
     localStorage.setItem(KEY, JSON.stringify(obj));
-  } catch {}
+  } catch { /* ignore: best-effort storage */ }
 }
 
 /**

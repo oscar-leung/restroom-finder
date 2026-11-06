@@ -19,7 +19,7 @@ const KEY = "gg_cleaning_v1";
 function read() {
   try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
 }
-function write(o) { try { localStorage.setItem(KEY, JSON.stringify(o)); } catch {} }
+function write(o) { try { localStorage.setItem(KEY, JSON.stringify(o)); } catch { /* ignore: best-effort storage */ } }
 
 function getVisitorId() {
   try {

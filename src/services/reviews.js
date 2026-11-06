@@ -34,7 +34,7 @@ function readAll() {
 function writeAll(obj) {
   try {
     localStorage.setItem(KEY, JSON.stringify(obj));
-  } catch {}
+  } catch { /* ignore: best-effort storage */ }
 }
 
 /** Get all reviews for a given restroom id, newest first. */

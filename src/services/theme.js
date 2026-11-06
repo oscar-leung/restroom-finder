@@ -17,7 +17,7 @@ function detectInitial() {
   try {
     const saved = localStorage.getItem(KEY);
     if (saved && ALLOWED.has(saved)) return saved;
-  } catch {}
+  } catch { /* ignore: best-effort storage */ }
   // First-visit default: stay light. Cyber is opt-in.
   return "default";
 }
@@ -31,7 +31,7 @@ export function applyTheme(theme) {
   if (typeof document !== "undefined") {
     document.documentElement.setAttribute("data-theme", theme);
   }
-  try { localStorage.setItem(KEY, theme); } catch {}
+  try { localStorage.setItem(KEY, theme); } catch { /* ignore: best-effort storage */ }
 }
 
 export function toggleTheme() {

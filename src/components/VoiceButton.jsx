@@ -53,7 +53,7 @@ export default function VoiceButton({
 
     recRef.current = rec;
     return () => {
-      try { rec.abort(); } catch {}
+      try { rec.abort(); } catch { /* ignore: best-effort storage */ }
     };
   }, [supported]);
 
@@ -75,7 +75,7 @@ export default function VoiceButton({
   const toggle = () => {
     if (!supported) return;
     if (listening) {
-      try { recRef.current.stop(); } catch {}
+      try { recRef.current.stop(); } catch { /* ignore: best-effort storage */ }
       setListening(false);
     } else {
       try {
