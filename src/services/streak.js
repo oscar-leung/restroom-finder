@@ -24,7 +24,7 @@ function todayLocal() {
 function read() {
   try { return JSON.parse(localStorage.getItem(KEY)) || null; } catch { return null; }
 }
-function write(o) { try { localStorage.setItem(KEY, JSON.stringify(o)); } catch {} }
+function write(o) { try { localStorage.setItem(KEY, JSON.stringify(o)); } catch { /* ignore: best-effort storage */ } }
 
 /**
  * Touch the streak — call this when the user does something

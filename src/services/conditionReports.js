@@ -30,13 +30,13 @@ export const REPORT_TYPES = {
 function readConditions() {
   try { return JSON.parse(localStorage.getItem(COND_KEY)) || {}; } catch { return {}; }
 }
-function writeConditions(o) { try { localStorage.setItem(COND_KEY, JSON.stringify(o)); } catch {} }
+function writeConditions(o) { try { localStorage.setItem(COND_KEY, JSON.stringify(o)); } catch { /* ignore: best-effort storage */ } }
 
 function readPoints() {
   try { return JSON.parse(localStorage.getItem(POINTS_KEY)) || { total: 0, lifetime: 0, byType: {} }; }
   catch { return { total: 0, lifetime: 0, byType: {} }; }
 }
-function writePoints(o) { try { localStorage.setItem(POINTS_KEY, JSON.stringify(o)); } catch {} }
+function writePoints(o) { try { localStorage.setItem(POINTS_KEY, JSON.stringify(o)); } catch { /* ignore: best-effort storage */ } }
 
 function getVisitorId() {
   try {

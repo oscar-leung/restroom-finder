@@ -35,7 +35,7 @@ function detectUnit() {
       _unitCache = override;
       return override;
     }
-  } catch {}
+  } catch { /* ignore: best-effort storage */ }
   if (typeof navigator !== "undefined") {
     const lang = (navigator.language || "").toLowerCase();
     const region = lang.split("-")[1] || "";
@@ -51,7 +51,7 @@ function detectUnit() {
 export function setDistanceUnit(unit) {
   if (unit !== "imperial" && unit !== "metric") return;
   _unitCache = unit;
-  try { localStorage.setItem("gg_distance_unit", unit); } catch {}
+  try { localStorage.setItem("gg_distance_unit", unit); } catch { /* ignore: best-effort storage */ }
 }
 
 export function getDistanceUnit() {

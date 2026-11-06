@@ -26,7 +26,7 @@ function read() {
 }
 
 function write(arr) {
-  try { localStorage.setItem(KEY, JSON.stringify(arr)); } catch {}
+  try { localStorage.setItem(KEY, JSON.stringify(arr)); } catch { /* ignore: best-effort storage */ }
 }
 
 export function getFavorites() {

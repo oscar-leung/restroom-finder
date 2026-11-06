@@ -37,7 +37,7 @@ function readAll() {
 function writeAll(list) {
   try {
     localStorage.setItem(KEY, JSON.stringify(list.slice(-MAX_ENTRIES)));
-  } catch {}
+  } catch { /* ignore: best-effort storage */ }
 }
 
 /** Return every user-submitted bathroom (shape-compatible with API results). */

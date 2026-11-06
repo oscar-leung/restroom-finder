@@ -162,7 +162,7 @@ export default function LoadingGame({ message = "Finding bathrooms near you…" 
             state.gameOver = true;
             // Save best
             if (state.score > best) {
-              try { localStorage.setItem(BEST_KEY, String(state.score)); } catch {}
+              try { localStorage.setItem(BEST_KEY, String(state.score)); } catch { /* ignore: best-effort storage */ }
               setBest(state.score);
             }
           }

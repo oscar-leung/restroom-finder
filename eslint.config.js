@@ -24,6 +24,11 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // eslint-plugin-react-hooks 6 ships React Compiler rules. The code
+      // predates them and sets state inside effects in eight places (see
+      // the lint-main PR). Warn, not error, until each is refactored.
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/immutability': 'warn',
     },
   },
 ])

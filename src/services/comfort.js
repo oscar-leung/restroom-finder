@@ -24,7 +24,7 @@ export function getComfort() {
 }
 
 export function setComfort(on) {
-  try { localStorage.setItem(KEY, on ? "on" : "off"); } catch {}
+  try { localStorage.setItem(KEY, on ? "on" : "off"); } catch { /* ignore: best-effort storage */ }
   if (typeof document !== "undefined") {
     document.documentElement.setAttribute(
       "data-comfort",

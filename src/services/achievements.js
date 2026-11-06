@@ -69,7 +69,7 @@ function read() {
 }
 
 function write(obj) {
-  try { localStorage.setItem(KEY, JSON.stringify(obj)); } catch {}
+  try { localStorage.setItem(KEY, JSON.stringify(obj)); } catch { /* ignore: best-effort storage */ }
 }
 
 /**

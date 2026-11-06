@@ -48,7 +48,7 @@ export function setPersona(persona) {
   try {
     localStorage.setItem(KEY, persona);
     localStorage.setItem(PICKED_KEY, "yes");
-  } catch {}
+  } catch { /* ignore: best-effort storage */ }
 
   // Apply DOM attribute for CSS targeting
   if (typeof document !== "undefined") {

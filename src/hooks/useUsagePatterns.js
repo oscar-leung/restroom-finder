@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 
 /**
  * useUsagePatterns — privacy-first usage tracking, localStorage only.
@@ -74,12 +74,8 @@ function formatHour(h) {
 }
 
 export default function useUsagePatterns() {
-  const [log, setLog] = useState([]);
-
-  // Hydrate from localStorage on mount
-  useEffect(() => {
-    setLog(readLog());
-  }, []);
+  // Hydrate from localStorage once, at first render
+  const [log, setLog] = useState(() => readLog());
 
   const record = useCallback(() => {
     const updated = [...readLog(), new Date().toISOString()];
@@ -88,7 +84,7 @@ export default function useUsagePatterns() {
   }, []);
 
   const clear = useCallback(() => {
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore: best-effort storage */ }
     setLog([]);
   }, []);
 

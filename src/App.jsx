@@ -29,7 +29,6 @@ import AchievementToast from "./components/AchievementToast";
 import VoiceButton from "./components/VoiceButton";
 import { getUserBathrooms } from "./services/userBathrooms";
 import { recordVisit, getAllVisits } from "./services/visitTracker";
-import { getFavorites } from "./services/favorites";
 import { tryUnlock } from "./services/achievements";
 import { touchStreak, getStreak } from "./services/streak";
 import { getTheme, applyTheme, toggleTheme } from "./services/theme";
@@ -126,7 +125,7 @@ function App() {
   const toggleSimpleMode = () => {
     const next = !simpleMode;
     setSimpleMode(next);
-    try { localStorage.setItem("gg_simple_mode_v1", String(next)); } catch {}
+    try { localStorage.setItem("gg_simple_mode_v1", String(next)); } catch { /* ignore: best-effort storage */ }
     trackEvent("simple_mode_toggled", { on: next });
   };
   // Theme (default | midnight). Apply on mount.
@@ -646,7 +645,7 @@ function App() {
         <AddBathroomModal
           position={geoPosition}
           onClose={() => setAddOpen(false)}
-          onAdded={(entry) => {
+          onAdded={() => {
             const updated = getUserBathrooms();
             setUserBathrooms(updated);
             setHeroIndex(0);
